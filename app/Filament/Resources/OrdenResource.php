@@ -211,6 +211,22 @@ class OrdenResource extends Resource
                             ])
                             ->columns(7)
                             ->defaultItems(1)
+                            ->default([
+                                ['articulo' => 'Esclavo con wifi (unidad)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Mecanico sc/apc', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Cable drop 1 hilo', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Grapas de muro', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Ont', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Canaleta plastica', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Abrazadera metalicas', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Chazos(unidad)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Tornillos(unidad)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Amarres plasticos (unidad)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Cinta bandi(centimetro)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Clavos', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Conector RG6', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['articulo' => 'Cable coaxial', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                            ])
                             ->live(), 
                     ]),
             ]);

@@ -190,8 +190,8 @@
                             <!-- COL 1 -->
                             @if(isset($items[$i]))
                                 <td>{{ $items[$i]['articulo'] ?? $items[$i]['grupo_articulo'] ?? '---' }}</td>
-                                <td class="text-center">{{ $items[$i]['cantidad'] ?? '' }}</td>
-                                <td class="text-right">{{ number_format($items[$i]['total'] ?? 0) }}</td>
+                                <td class="text-center">{{ !empty($items[$i]['cantidad']) ? $items[$i]['cantidad'] : '' }}</td>
+                                <td class="text-right">{{ !empty($items[$i]['total']) ? number_format($items[$i]['total']) : '' }}</td>
                                 <td></td>
                             @else
                                 <td>{{ $legacyItems[$i] ?? '' }}</td> {{-- If not filled, show legacy item placeholder? Or just empty? User said "campos vacios si no fueron llenados". Let's show legacy items as hints if row is empty, or just blank? "vacio si no fueron llenados" -> I will interpret as just empty lines if not blank form vs filled items. But wait, "imprimir los campos vacios si no fueron llenados" usually means blank lines. --}}
@@ -213,6 +213,7 @@
                 @endif
                 <tr>
                    <td colspan="4" style="border:none; text-align:center; font-weight:bold;">OBSERVACIONES DE EJECUCION</td>
+                   <td colspan="4" style="border:none;"></td>
                 </tr>
             </tbody>
         </table>
