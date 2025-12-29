@@ -212,8 +212,8 @@
                     @endfor
                 @endif
                 <tr>
-                   <td colspan="4" style="border:none; text-align:right; font-weight:bold;">INFORMACIÓN DEL EQUIPO INSTALADO</td>
-                   <td colspan="4" style="border:none;"></td> 
+                   <td colspan="4" style="border:none; text-align:center; font-weight:bold;">OBSERVACIONES DE EJECUCION</td>
+                   <td colspan="4" style="border:none; text-align:center; font-weight:bold;">INFORMACIÓN DEL EQUIPO INSTALADO</td> 
                 </tr>
             </tbody>
         </table>
@@ -222,7 +222,6 @@
         <table class="materials-table" style="margin-top: -6px; border-top: none;">
              <tr>
                  <td width="50%" rowspan="4" style="vertical-align: top; border-right: 1px solid #000;">
-                     <div style="font-weight: bold; margin-bottom: 5px;">OBSERVACIONES DE EJECUCION</div>
                      <div>
                          {{ $orden->solucion_tecnico ?? '' }} - {{ $orden->observaciones ?? '' }}
                      </div>
