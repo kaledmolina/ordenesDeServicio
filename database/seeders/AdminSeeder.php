@@ -25,8 +25,8 @@ class AdminSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'telefono' => null,
                 'direccion' => null,
-                'vehicle_id' => null,
-                'licencia_conduccion' => null,
+
+
                 'is_active' => true,
                 'email_verified_at' => now(),
             ]

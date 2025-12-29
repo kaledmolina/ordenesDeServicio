@@ -64,6 +64,6 @@ class AuthController extends Controller
     public function profile(Request $request)
     {
         // Carga la relación 'vehicle' para incluirla en la respuesta JSON a
-        return response()->json($request->user()->load('vehicle'));
+        return response()->json($request->user());
     }
 }

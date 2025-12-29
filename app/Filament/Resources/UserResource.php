@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
-use App\Models\Vehicle;
+
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -38,18 +38,12 @@ class UserResource extends Resource
                         TextInput::make('password')->label('Contraseña')->password()->dehydrateStateUsing(fn (string $state): string => Hash::make($state))->dehydrated(fn (?string $state): bool => filled($state))->required(fn (string $operation): bool => $operation === 'create'),
                         TextInput::make('telefono')->label('Teléfono')->tel(),
                         TextInput::make('direccion')->label('Dirección'),
-                        TextInput::make('licencia_conduccion')->label('Número de Licencia de Conducción'),
+
                     ])->columns(2),
 
                 Section::make('Asignación y Rol')
                     ->schema([
-                        Select::make('vehicle_id')
-                            ->label('Vehículo Asignado')
-                            ->options(
-                                Vehicle::whereDoesntHave('user')->pluck('placa', 'id')
-                            )
-                            ->searchable()
-                            ->placeholder('Sin vehículo asignado'),
+
                         Select::make('roles')
                             ->label('Rol')
                             ->multiple()
@@ -68,7 +62,7 @@ class UserResource extends Resource
             ->columns([
                 TextColumn::make('name')->label('Nombre')->searchable(),
                 TextColumn::make('email')->searchable(),
-                TextColumn::make('vehicle.placa')->label('Vehículo Asignado')->placeholder('N/A'),
+
                 TextColumn::make('roles.name')->label('Rol')->badge(),
                 IconColumn::make('is_active')
                     ->label('Activo')
