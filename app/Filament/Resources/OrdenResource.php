@@ -62,9 +62,11 @@ class OrdenResource extends Resource
                                     $set('direccion', $user->direccion);
                                     $set('cedula', $user->email); // Usando email como ejemplo de dato único, cambiar a cedula si existe
                                     $set('telefono', $user->telefono);
+                                    $set('nombre_cliente', $user->name);
                                 }
                             })
                             ->columnSpan(2),
+                        Hidden::make('nombre_cliente'),
                         TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
                         TextInput::make('cedula')->label('CEDULA')->columnSpan(1),
                         TextInput::make('precinto')->label('PRECINTO')->columnSpan(1),

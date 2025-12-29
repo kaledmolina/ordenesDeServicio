@@ -11,7 +11,9 @@ class Orden extends Model
         'cliente_id',
         'direccion',
         'cedula',
+        'cedula',
         'precinto',
+        'nombre_cliente',
         
         'tipo_orden',
         'tipo_funcion',

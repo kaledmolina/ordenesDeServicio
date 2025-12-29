@@ -90,7 +90,13 @@
         <table class="header-table">
             <tr>
                 <td class="logo-cell">
-                    <img src="{{ public_path('logo.png') }}" alt="Logo" style="max-width: 150px; height: auto;">
+                    @php
+                        $path = public_path('logo.png');
+                        $type = pathinfo($path, PATHINFO_EXTENSION);
+                        $data = file_exists($path) ? file_get_contents($path) : '';
+                        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    @endphp
+                    <img src="{{ $base64 }}" alt="Logo" style="max-width: 150px; height: auto;">
                     <div style="font-size: 10px; font-weight: bold; color: #008CB4;">TELECOMUNICACIONES</div>
                 </td>
                 <td class="info-cell">
