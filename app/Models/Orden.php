@@ -8,50 +8,58 @@ class Orden extends Model
 {
     protected $fillable = [
         'numero_orden',
-        'numero_expediente',
-        'nombre_cliente',
-        'fecha_hora',
-        'valor_servicio',
-        'placa',
-        'referencia',
-        'nombre_asignado',
-        'celular',
-        'unidad_negocio',
-        'movimiento',
-        'servicio',
-        'modalidad',
-        'tipo_activo',
-        'marca',
-        'ciudad_origen',
-        'direccion_origen',
-        'observaciones_origen',
-        'ciudad_destino',
-        'direccion_destino',
-        'observaciones_destino',
-        'observaciones_generales',
-        'es_programada',
-        'fecha_programada',
-        'technician_id',
-        'status',
+        'cliente_id',
+        'direccion',
+        'cedula',
+        'precinto',
+        
+        'tipo_orden',
+        'tipo_funcion',
+        'fecha_trn',
+        'fecha_vencimiento',
+        'estado_orden',
+        'tipo',
+        'estado_interno',
+        
+        'direccion_asociado',
+        'telefono',
+        'saldo_cliente',
+        'solicitado_por',
+        'estado_tv',
+        
+        'technician_id', // tecnico_principal
+        'tecnico_auxiliar_id',
+        'solicitud_suscriptor',
+        'solucion_tecnico',
+        
+        'valor_total',
+        'observaciones',
+        'articulos', // JSON Repeater
+        
+        'status', // Kept for internal logic if needed, though 'estado_orden' might replace it. Keeping for safety.
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $casts = [
+        'fecha_trn' => 'date',
+        'fecha_vencimiento' => 'date',
+        'articulos' => 'array',
+        'saldo_cliente' => 'decimal:2',
+        'valor_total' => 'decimal:2',
+    ];
+
+    public function cliente()
     {
-        return [
-            'fecha_hora' => 'datetime',
-            'fecha_programada' => 'datetime',
-            'es_programada' => 'boolean',
-            'valor_servicio' => 'decimal:2',
-        ];
+        return $this->belongsTo(User::class, 'cliente_id');
     }
+
     public function technician()
     {
         return $this->belongsTo(User::class, 'technician_id');
+    }
+
+    public function tecnicoAuxiliar()
+    {
+        return $this->belongsTo(User::class, 'tecnico_auxiliar_id');
     }
 
     public function fotos()

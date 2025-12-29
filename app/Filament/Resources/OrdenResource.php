@@ -47,93 +47,135 @@ class OrdenResource extends Resource
     {
         return $form
             ->schema([
-                Grid::make(2)->schema([
-                    Section::make('Información Principal')
-                        ->schema([
-                            TextInput::make('numero_orden')
-                                ->label('Número de Orden')
-                                ->required()
-                                ->unique(ignoreRecord: true)
-                                ->default(fn () => (Orden::max('numero_orden') ?? 0) + 1),
-                            
-                            TextInput::make('servicio')->label('Servicio'),                            
-                            TextInput::make('nombre_cliente')->label('Nombre del Cliente')->required(),
-                            DateTimePicker::make('fecha_hora')->label('Fecha y Hora')->required(),
-                        ])->columnSpan(1),
-                    
-                    Section::make('Detalles del Servicio')
-                        ->schema([
-                            TextInput::make('numero_expediente')->label('Número de Expediente'),
-                            TextInput::make('movimiento')->label('Movimiento'),
-
-                            TextInput::make('valor_servicio')->label('Valor del Servicio')->numeric()->prefix('$'),
-                            Select::make('technician_id')
-                                ->label('Técnico Asignado')
-                                ->relationship(
-                                    'technician', 
-                                    'name', 
-                                    modifyQueryUsing: fn (Builder $query) => $query
-                                        ->whereHas('roles', fn ($q) => $q->where('name', 'tecnico'))
-                                        ->where('is_active', true)
-                                )
-                                ->searchable()
-                                ->preload(),
-                            TextInput::make('tipo_activo')
-                                ->label('Tipo de activo (Placa)')
-                                ->required(),
-                        ])->columnSpan(1),
-                ]),
-
-                Section::make('Referencia del Servicio')
+                // SECCIÓN 1: ENCABEZADO DEL CLIENTE
+                Section::make('Encabezado del Cliente')
                     ->schema([
-                        TextInput::make('placa')->label('Placa'),
-                        TextInput::make('marca')->label('Marca'),
-                        TextInput::make('referencia')->label('Referencia')
-                    ]),
+                        Select::make('cliente_id')
+                            ->label('Código - Nombres Cliente')
+                            ->relationship('cliente', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                $user = User::find($state);
+                                if ($user) {
+                                    $set('direccion', $user->direccion);
+                                    $set('cedula', $user->email); // Usando email como ejemplo de dato único, cambiar a cedula si existe
+                                    $set('telefono', $user->telefono);
+                                }
+                            })
+                            ->columnSpan(2),
+                        TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
+                        TextInput::make('cedula')->label('CEDULA')->columnSpan(1),
+                        TextInput::make('precinto')->label('PRECINTO')->columnSpan(1),
+                    ])->columns(5),
 
-                Section::make('Información de Contacto en Origen')
+                // SECCIÓN 2: DATOS DE LA ORDEN
+                Section::make('Datos de la Orden')
                     ->schema([
-                        TextInput::make('nombre_asignado')->label('Nombre del Asegurado'),
-                        TextInput::make('celular')->label('Celular')->tel(),
-                    ]),
-                
-                Grid::make(2)->schema([
-                    Section::make('Origen')
-                        ->schema([
-                            TextInput::make('ciudad_origen')->label('Ciudad de Origen')->required(),
-                            TextInput::make('direccion_origen')->label('Dirección de Origen')->required(),
-                            Textarea::make('observaciones_origen')->label('Observaciones de Origen')->rows(3),
-                        ])->columnSpan(1),
-
-                    Section::make('Destino')
-                        ->schema([
-                            TextInput::make('ciudad_destino')->label('Ciudad de Destino')->required(),
-                            TextInput::make('direccion_destino')->label('Dirección de Destino')->required(),
-                            Textarea::make('observaciones_destino')->label('Observaciones de Destino')->rows(3),
-                        ])->columnSpan(1),
-                ]),
-
-                Section::make('Información Adicional')
-                    ->schema([
-                        Textarea::make('observaciones_generales')->label('Observaciones Generales')->rows(4),
-                        Select::make('status')
-                            ->label('Estado de la Orden')
+                        Select::make('tipo_orden')
+                            ->label('TIPO ORDEN')
                             ->options([
-                                'abierta' => 'Abierta',
-                                'programada' => 'Programada',
-                                'en proceso' => 'En Proceso',
-                                'cerrada' => 'Cerrada',
-                                'fallida' => 'Fallida',
-                                'anulada' => 'Anulada',
-                            ])
-                            ->required()
-                            ->default('abierta')
-                            ->live(),
+                                '025 REVISION TECNICA' => '025 REVISION TECNICA',
+                                'INSTALACION' => 'INSTALACION',
+                            ]),
+                        Select::make('tipo_funcion')
+                            ->label('TIPO FUNCION')
+                            ->options([
+                                '1 Suscriptor' => '1 Suscriptor',
+                                '2 Red' => '2 Red',
+                            ]),
+                        Forms\Components\DatePicker::make('fecha_trn')->label('FECHA TRN'),
+                        Forms\Components\DatePicker::make('fecha_vencimiento')->label('F. VENC'),
+                        TextInput::make('numero_orden')
+                            ->label('NUMERO')
+                            ->default(fn () => (Orden::max('numero_orden') ?? 0) + 1)
+                            ->readOnly(),
+                        TextInput::make('estado_orden')->label('ESTADO ORDEN')->default('AP'), // AP = Aprobada/Aperturada?
+                        TextInput::make('tipo')->label('TIPO')->default('REI'),
+                        TextInput::make('estado_interno')->label('ESTADO')->default('A'),
+                    ])->columns(4),
 
-                        DateTimePicker::make('fecha_programada')
-                            ->label('Fecha Programada')
-                            ->visible(fn (Get $get): bool => $get('status') === 'programada')
-                            ->requiredIf('status', 'programada'),
+                // SECCIÓN 3: DATOS DE CONTACTO Y ESTADO
+                Section::make('Datos de Contacto y Estado')
+                    ->schema([
+                        TextInput::make('direccion_asociado')->label('DIRECCION ASOCIADO'),
+                        TextInput::make('telefono')->label('TELEFONO'),
+                        TextInput::make('saldo_cliente')->label('SALDO CLIENTE')->numeric()->prefix('$'),
+                        TextInput::make('solicitado_por')->label('SOLICITADO POR'),
+                        TextInput::make('estado_tv')->label('ESTADO T.V'),
+                    ])->columns(3),
+
+                // SECCIÓN 4: ASIGNACIÓN TÉCNICA Y DIAGNÓSTICO
+                Section::make('Asignación Técnica y Diagnóstico')
+                    ->schema([
+                        Select::make('technician_id') // Mapped to tecnico_principal
+                            ->label('Empleado / Técnico')
+                            ->relationship('technician', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
+                            ->searchable()
+                            ->preload(),
+                        Select::make('tecnico_auxiliar_id')
+                            ->label('Técnico Auxiliar')
+                            ->relationship('tecnicoAuxiliar', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
+                            ->searchable()
+                            ->preload(),
+                        Select::make('solicitud_suscriptor')
+                            ->label('SOLICITUD SUSCRIPTOR (Reporte)')
+                            ->options([
+                                '1 SERVICIO INTERMITENTE' => '1 SERVICIO INTERMITENTE',
+                                '2 SIN SEÑAL' => '2 SIN SEÑAL',
+                                '3 BAJA VELOCIDAD' => '3 BAJA VELOCIDAD',
+                            ])
+                            ->editable() // Permite escribir uno nuevo si filament lo soporta o es creatable
+                            ->searchable(),
+                        Select::make('solucion_tecnico')
+                            ->label('SOLUCIÓN TÉCNICO')
+                            ->options([
+                                '1 CAMBIO - CONECTOR' => '1 CAMBIO - CONECTOR',
+                                '2 REINICIO EQUIPOS' => '2 REINICIO EQUIPOS',
+                                '3 CAMBIO EQUIPO' => '3 CAMBIO EQUIPO',
+                            ])
+                            ->editable()
+                            ->searchable(),
+                    ])->columns(2),
+
+                // SECCIÓN 5: TOTALES Y OBSERVACIONES
+                Section::make('Totales y Observaciones')
+                    ->schema([
+                        TextInput::make('valor_total')->label('VALOR TOTAL')->numeric()->prefix('$'),
+                        Textarea::make('observaciones')->label('OBSERVACIONES')->columnSpanFull(),
+                    ])->columns(2),
+
+                // SECCIÓN 6: DETALLE DE ARTÍCULOS (REPEATER)
+                Section::make('Detalle de Artículos')
+                    ->schema([
+                        Repeater::make('articulos')
+                            ->schema([
+                                TextInput::make('grupo_articulo')->label('Grupo Articulo'),
+                                TextInput::make('articulo')->label('Articulo'), // Idealmente un Select
+                                TextInput::make('valor_unitario')
+                                    ->label('V. Unitario')
+                                    ->numeric()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        $cant = $get('cantidad') ?? 0;
+                                        $set('total', $state * $cant);
+                                    }),
+                                TextInput::make('cantidad')
+                                    ->label('Cant.')
+                                    ->numeric()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        $val = $get('valor_unitario') ?? 0;
+                                        $set('total', $state * $val);
+                                    }),
+                                TextInput::make('porcentaje_iva')->label('% IVA')->numeric()->default(19),
+                                TextInput::make('valor_iva')->label('V. IVA')->numeric()->readOnly(),
+                                TextInput::make('total')->label('Total')->numeric()->readOnly(),
+                            ])
+                            ->columns(7)
+                            ->defaultItems(1)
+                            ->live(), 
                     ]),
             ]);
     }
