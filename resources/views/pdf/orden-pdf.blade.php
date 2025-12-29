@@ -194,7 +194,7 @@
                                 <td class="text-right">{{ !empty($items[$i]['total']) ? number_format($items[$i]['total']) : '' }}</td>
                                 <td></td>
                             @else
-                                <td>{{ $legacyItems[$i] ?? '' }}</td> {{-- If not filled, show legacy item placeholder? Or just empty? User said "campos vacios si no fueron llenados". Let's show legacy items as hints if row is empty, or just blank? "vacio si no fueron llenados" -> I will interpret as just empty lines if not blank form vs filled items. But wait, "imprimir los campos vacios si no fueron llenados" usually means blank lines. --}}
+                                <td></td> {{-- Empty cell if no DB item exists in this slot --}}
                                 <td></td><td></td><td></td>
                             @endif
 
