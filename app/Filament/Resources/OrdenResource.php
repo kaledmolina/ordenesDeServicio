@@ -212,20 +212,20 @@ class OrdenResource extends Resource
                             ->columns(7)
                             ->defaultItems(1)
                             ->default([
-                                ['articulo' => 'Esclavo con wifi (unidad)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Mecanico sc/apc', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Cable drop 1 hilo', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Grapas de muro', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Ont', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Canaleta plastica', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Abrazadera metalicas', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Chazos(unidad)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Tornillos(unidad)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Amarres plasticos (unidad)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Cinta bandi(centimetro)', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Clavos', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Conector RG6', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['articulo' => 'Cable coaxial', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Esclavo con wifi (unidad)', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Mecanico sc/apc', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Cable drop 1 hilo', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Grapas de muro', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Ont', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Canaleta plastica', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Abrazadera metalicas', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Chazos(unidad)', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Tornillos(unidad)', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Amarres plasticos (unidad)', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Cinta bandi(centimetro)', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Clavos', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Conector RG6', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Cable coaxial', 'articulo' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
                             ])
                             ->live(), 
                     ]),
@@ -274,6 +274,7 @@ class OrdenResource extends Resource
                             $pdf = Pdf::loadView('pdf.orden-pdf', ['orden' => $record, 'is_blank' => true]);
                             return response()->streamDownload(fn() => print($pdf->output()), 'orden-vacia-'.$record->numero_orden.'.pdf');
                         }),
+                    Tables\Actions\DeleteAction::make(),
                 ]),
             ])
             ->bulkActions([

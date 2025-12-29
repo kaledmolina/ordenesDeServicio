@@ -189,7 +189,7 @@
                         <tr>
                             <!-- COL 1 -->
                             @if(isset($items[$i]))
-                                <td>{{ $items[$i]['articulo'] ?? $items[$i]['grupo_articulo'] ?? '---' }}</td>
+                                <td>{{ $items[$i]['articulo'] ?: ($items[$i]['grupo_articulo'] ?? '---') }}</td>
                                 <td class="text-center">{{ !empty($items[$i]['cantidad']) ? $items[$i]['cantidad'] : '' }}</td>
                                 <td class="text-right">{{ !empty($items[$i]['total']) ? number_format($items[$i]['total']) : '' }}</td>
                                 <td></td>
