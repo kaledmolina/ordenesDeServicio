@@ -22,7 +22,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Forms\Get;
-use App\Models\Vehicle;
+
 use Filament\Tables\Actions\Action;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Tables\Actions\ActionGroup;
@@ -78,10 +78,8 @@ class OrdenResource extends Resource
                                 )
                                 ->searchable()
                                 ->preload(),
-                            Select::make('tipo_activo')
+                            TextInput::make('tipo_activo')
                                 ->label('Tipo de activo (Placa)')
-                                ->options(Vehicle::pluck('placa', 'placa')) // Carga las placas de los vehículos
-                                ->searchable() // Permite buscar en la lista
                                 ->required(),
                         ])->columnSpan(1),
                 ]),
