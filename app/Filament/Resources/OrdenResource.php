@@ -243,11 +243,18 @@ class OrdenResource extends Resource
                     Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
                     Action::make('downloadPdf')
-                        ->label('PDF')
-                        ->icon('heroicon-o-arrow-down-tray')
+                        ->label('Descargar PDF')
+                        ->icon('heroicon-o-document-arrow-down')
                         ->action(function (Orden $record) {
-                            $pdf = Pdf::loadView('pdf.orden-pdf', ['orden' => $record]);
+                            $pdf = Pdf::loadView('pdf.orden-pdf', ['orden' => $record, 'is_blank' => false]);
                             return response()->streamDownload(fn() => print($pdf->output()), 'orden-'.$record->numero_orden.'.pdf');
+                        }),
+                    Action::make('downloadBlankPdf')
+                        ->label('Descargar Formato Vacio')
+                        ->icon('heroicon-o-document')
+                        ->action(function (Orden $record) {
+                            $pdf = Pdf::loadView('pdf.orden-pdf', ['orden' => $record, 'is_blank' => true]);
+                            return response()->streamDownload(fn() => print($pdf->output()), 'orden-vacia-'.$record->numero_orden.'.pdf');
                         }),
                 ]),
             ])
