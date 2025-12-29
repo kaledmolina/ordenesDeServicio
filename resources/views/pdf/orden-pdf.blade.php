@@ -213,7 +213,6 @@
                 @endif
                 <tr>
                    <td colspan="4" style="border:none; text-align:center; font-weight:bold;">OBSERVACIONES DE EJECUCION</td>
-                   <td colspan="4" style="border:none; text-align:center; font-weight:bold;">INFORMACIÓN DEL EQUIPO INSTALADO</td> 
                 </tr>
             </tbody>
         </table>
