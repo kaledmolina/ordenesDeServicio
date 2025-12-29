@@ -76,9 +76,34 @@ class OrdenResource extends Resource
                         Select::make('tipo_orden')
                             ->label('TIPO ORDEN')
                             ->options([
-                                '025 REVISION TECNICA' => '025 REVISION TECNICA',
-                                'INSTALACION' => 'INSTALACION',
-                            ]),
+                                '003' => '003 PUNTO ADICIONAL',
+                                '005' => '005 CORTE',
+                                '008' => '008 TRASLADOS',
+                                '009' => '009 RECONEXIONES',
+                                '015' => '015 MULTA',
+                                '016' => '016 RETIRO DEFINITIVO',
+                                '017' => '017 EMISION DE PUBLICIDAD',
+                                '021' => '021 MATERIALES',
+                                '022' => '022 SOPORTE REMOTO',
+                                '023' => '023 DESCUENTO INTERNET',
+                                '024' => '024 INTERNET',
+                                '025' => '025 REVISION TECNICA',
+                                '026' => '026 CORTE INTERNET',
+                                '027' => '027 SUSPENSION INTERNET',
+                                '028' => '028 CAMBIO ESTADO',
+                                '029' => '029 TRASLADO INTERNO INT',
+                                '030' => '030 CUENTA COBRO',
+                                '031' => '031 COPIAS Y REPRODUCCIONES',
+                                '032' => '032 TRASLADO INTERNET',
+                                '033' => '033 RECONEXION INTERNET',
+                                '034' => '034 RETIRO INTERNET',
+                                '035' => '035 ORDEN DE APOYO',
+                                '036' => '036 INSTALACION CAMARA',
+                                '037' => '037 CAMBIO CONTRASEÑA',
+                                '044' => '044 CAMBIO PLAN INTERNET',
+                                '048' => '048 CAMBIO PLAN TV',
+                            ])
+                            ->searchable(),
                         Select::make('tipo_funcion')
                             ->label('TIPO FUNCION')
                             ->options([
@@ -122,11 +147,21 @@ class OrdenResource extends Resource
                         Select::make('solicitud_suscriptor')
                             ->label('SOLICITUD SUSCRIPTOR (Reporte)')
                             ->options([
-                                '1 SERVICIO INTERMITENTE' => '1 SERVICIO INTERMITENTE',
-                                '2 SIN SEÑAL' => '2 SIN SEÑAL',
-                                '3 BAJA VELOCIDAD' => '3 BAJA VELOCIDAD',
+                                '1' => '1 SERVICIO INTERMITENTE',
+                                '2' => '2 SIN SERVICIO DE INTERNET',
+                                '3' => '3 SIN ALCANCE POTENCIA',
+                                '4' => '4 SERVICIO LENTO',
+                                '5' => '5 SIN SERVICIO DE TELEVISION',
+                                '132' => '132 CAMBIO DE CUENTA EN WIM',
+                                '133' => '133 CAMBIO DE EQUIPO',
+                                '136' => '136 LUZ ROJA',
+                                '137' => '137 MANTENIMIENTO CORRECTIVO',
+                                '139' => '139 INSTALACION AUTOMONITOR',
+                                '140' => '140 REVISION TCA AUTOMONITOR',
+                                '142' => '142 GARANTIA INTERNET',
+                                '143' => '143 GARANTIA TV',
+                                '144' => '144 GARANTIA TV E INTERNET',
                             ])
-                            ->editable() // Permite escribir uno nuevo si filament lo soporta o es creatable
                             ->searchable(),
                         Select::make('solucion_tecnico')
                             ->label('SOLUCIÓN TÉCNICO')
