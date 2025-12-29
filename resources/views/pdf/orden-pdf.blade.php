@@ -166,51 +166,36 @@
                 </tr>
             </thead>
             <tbody>
-                @if($is_blank)
-                    {{-- Render fixed legacy items --}}
-                    @for($i = 0; $i < 14; $i++)
-                        <tr>
-                            <td>{{ $legacyItems[$i] ?? '' }}</td>
+            <tbody>
+                @php
+                    $items = $orden->articulos ?? [];
+                    $maxRows = 14; // Fixed size to match paper look
+                @endphp
+                @for($i = 0; $i < $maxRows; $i++)
+                    <tr>
+                        <!-- COL 1 -->
+                        @if(isset($items[$i]))
+                            <td>{{ $items[$i]['articulo'] ?: ($items[$i]['grupo_articulo'] ?? '---') }}</td>
+                            <td class="text-center">{{ !empty($items[$i]['cantidad']) ? $items[$i]['cantidad'] : '' }}</td>
+                            <td class="text-right">{{ !empty($items[$i]['total']) ? number_format($items[$i]['total']) : '' }}</td>
+                            <td></td>
+                        @else
+                            <td></td> {{-- Empty cell if no DB item exists in this slot --}}
                             <td></td><td></td><td></td>
-                            <td></td> {{-- Second col empty description --}}
-                            <td></td><td></td><td></td>
-                        </tr>
-                    @endfor
-                @else
-                    {{-- Render Actual Items but formatted into 2 cols if possible, 
-                         OR render actual items in col 1 and blanks continue? 
-                         User said "imprimir los campos vacios si no fueorn lllenado y vacio si no fueron llenados" --}}
-                    @php
-                        $items = $orden->articulos ?? [];
-                        $count = count($items);
-                        $maxRows = 14; // Fixed size to match paper look
-                    @endphp
-                    @for($i = 0; $i < $maxRows; $i++)
-                        <tr>
-                            <!-- COL 1 -->
-                            @if(isset($items[$i]))
-                                <td>{{ $items[$i]['articulo'] ?: ($items[$i]['grupo_articulo'] ?? '---') }}</td>
-                                <td class="text-center">{{ !empty($items[$i]['cantidad']) ? $items[$i]['cantidad'] : '' }}</td>
-                                <td class="text-right">{{ !empty($items[$i]['total']) ? number_format($items[$i]['total']) : '' }}</td>
-                                <td></td>
-                            @else
-                                <td></td> {{-- Empty cell if no DB item exists in this slot --}}
-                                <td></td><td></td><td></td>
-                            @endif
+                        @endif
 
-                            <!-- COL 2 -->
-                             @if(isset($items[$i + $maxRows])) {{-- Very unlikely to have >14 items but logic supports it --}}
-                                <td>{{ $items[$i+$maxRows]['articulo'] ?? '' }}</td>
-                                <td class="text-center">{{ $items[$i+$maxRows]['cantidad'] ?? '' }}</td>
-                                <td class="text-right">{{ number_format($items[$i+$maxRows]['total'] ?? 0) }}</td>
-                                <td></td>
-                             @else
-                                <td></td>
-                                <td></td><td></td><td></td>
-                             @endif
-                        </tr>
-                    @endfor
-                @endif
+                        <!-- COL 2 -->
+                            @if(isset($items[$i + $maxRows])) {{-- Very unlikely to have >14 items but logic supports it --}}
+                            <td>{{ $items[$i+$maxRows]['articulo'] ?? '' }}</td>
+                            <td class="text-center">{{ $items[$i+$maxRows]['cantidad'] ?? '' }}</td>
+                            <td class="text-right">{{ number_format($items[$i+$maxRows]['total'] ?? 0) }}</td>
+                            <td></td>
+                            @else
+                            <td></td>
+                            <td></td><td></td><td></td>
+                            @endif
+                    </tr>
+                @endfor
                 <tr>
                    <td colspan="4" style="border:none; text-align:center; font-weight:bold;">OBSERVACIONES DE EJECUCION</td>
                    <td colspan="4" style="border:none;"></td>
