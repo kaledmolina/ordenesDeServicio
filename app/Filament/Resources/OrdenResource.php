@@ -170,7 +170,6 @@ class OrdenResource extends Resource
                                 '2 REINICIO EQUIPOS' => '2 REINICIO EQUIPOS',
                                 '3 CAMBIO EQUIPO' => '3 CAMBIO EQUIPO',
                             ])
-                            ->editable()
                             ->searchable(),
                     ])->columns(2),
 
