@@ -38,7 +38,13 @@ class Orden extends Model
         'observaciones',
         'articulos', // JSON Repeater
         
-        'status', // Kept for internal logic if needed, though 'estado_orden' might replace it. Keeping for safety.
+        'status', 
+        
+        // Tracking timestamps
+        'fecha_asignacion',
+        'fecha_inicio_atencion',
+        'fecha_fin_atencion',
+        'fecha_cierre',
     ];
 
     protected $casts = [
@@ -47,7 +53,17 @@ class Orden extends Model
         'articulos' => 'array',
         'saldo_cliente' => 'decimal:2',
         'valor_total' => 'decimal:2',
+        'fecha_asignacion' => 'datetime',
+        'fecha_inicio_atencion' => 'datetime',
+        'fecha_fin_atencion' => 'datetime',
+        'fecha_cierre' => 'datetime',
     ];
+
+    const ESTADO_PENDIENTE = 'pendiente';
+    const ESTADO_ASIGNADA = 'asignada';
+    const ESTADO_EN_PROCESO = 'en_proceso';
+    const ESTADO_EJECUTADA = 'ejecutada';
+    const ESTADO_CERRADA = 'cerrada';
 
     public function cliente()
     {

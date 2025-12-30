@@ -118,9 +118,10 @@ class OrdenResource extends Resource
                             ->label('NUMERO')
                             ->default(fn () => (Orden::max('numero_orden') ?? 0) + 1)
                             ->readOnly(),
-                        TextInput::make('estado_orden')->label('ESTADO ORDEN')->default('AP'), // AP = Aprobada/Aperturada?
-                        TextInput::make('tipo')->label('TIPO')->default('REI'),
-                        TextInput::make('estado_interno')->label('ESTADO')->default('A'),
+                        TextInput::make('estado_orden')
+                            ->label('ESTADO ORDEN')
+                            ->default(Orden::ESTADO_PENDIENTE)
+                            ->readOnly(),
                     ])->columns(4),
 
                 // SECCIÓN 3: DATOS DE CONTACTO Y ESTADO
@@ -140,7 +141,14 @@ class OrdenResource extends Resource
                             ->label('Empleado / Técnico')
                             ->relationship('technician', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $set('estado_orden', Orden::ESTADO_ASIGNADA);
+                                    $set('fecha_asignacion', now());
+                                }
+                            }),
                         Select::make('tecnico_auxiliar_id')
                             ->label('Técnico Auxiliar')
                             ->relationship('tecnicoAuxiliar', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
@@ -229,6 +237,11 @@ class OrdenResource extends Resource
                             ])
                             ->live(), 
                     ]),
+                // Hidden fields for tracking
+                Hidden::make('fecha_asignacion'),
+                Hidden::make('fecha_inicio_atencion'),
+                Hidden::make('fecha_fin_atencion'),
+                Hidden::make('fecha_cierre'),
             ]);
     }
 
@@ -243,14 +256,14 @@ class OrdenResource extends Resource
                 TextColumn::make('valor_servicio')->label('Valor del servicio')->money('COP')->sortable(),
                 TextColumn::make('technician.name')->label('Tecnico')->searchable(),
                 TextColumn::make('servicio')->label('Tipo de servicio')->searchable(),
-                BadgeColumn::make('status')
+                BadgeColumn::make('estado_orden')
                     ->label('Estado')
                     ->colors([
-                        'primary' => 'abierta',
-                        'warning' => 'en proceso',
-                        'success' => 'cerrada',
-                        'danger' => 'fallida',
-                        'gray' => 'anulada',
+                        'gray' => Orden::ESTADO_PENDIENTE,
+                        'warning' => Orden::ESTADO_ASIGNADA,
+                        'info' => Orden::ESTADO_EN_PROCESO,
+                        'success' => Orden::ESTADO_EJECUTADA,
+                        'danger' => Orden::ESTADO_CERRADA,
                     ]),
             ])
             ->filters([
@@ -269,6 +282,39 @@ class OrdenResource extends Resource
                         }),
                     Tables\Actions\DeleteAction::make(),
                 ]),
+                Action::make('iniciarAtencion')
+                    ->label('Iniciar Atención')
+                    ->icon('heroicon-o-play')
+                    ->color('info')
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA)
+                    ->action(function (Orden $record) {
+                        $record->update([
+                            'estado_orden' => Orden::ESTADO_EN_PROCESO,
+                            'fecha_inicio_atencion' => now(),
+                        ]);
+                    }),
+                Action::make('finalizarAtencion')
+                    ->label('Finalizar Atención')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EN_PROCESO)
+                    ->action(function (Orden $record) {
+                        $record->update([
+                            'estado_orden' => Orden::ESTADO_EJECUTADA,
+                            'fecha_fin_atencion' => now(),
+                        ]);
+                    }),
+                Action::make('cerrarOrden')
+                    ->label('Cerrar Orden')
+                    ->icon('heroicon-o-lock-closed')
+                    ->color('danger')
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA) // Or check permissions
+                    ->action(function (Orden $record) {
+                        $record->update([
+                            'estado_orden' => Orden::ESTADO_CERRADA,
+                            'fecha_cierre' => now(),
+                        ]);
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
