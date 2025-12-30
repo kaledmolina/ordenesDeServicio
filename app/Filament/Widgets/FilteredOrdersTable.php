@@ -52,24 +52,44 @@ class FilteredOrdersTable extends BaseWidget
             ->columns([
                 TextColumn::make('numero_orden')->label('N° Orden')->searchable(),
                 
-                TextColumn::make('technician.name')
-                    ->label('Técnico Asignado')
+                TextColumn::make('nombre_cliente')
+                    ->label('Cliente')
                     ->searchable()
-                    ->placeholder('Sin asignar'),
+                    ->sortable(),
 
-                TextColumn::make('celular')->label('Número de Contacto')->placeholder('Sin asignar'),
-                TextColumn::make('ciudad_origen')->label('Ciudad Origen')->placeholder('Sin asignar'),
-                TextColumn::make('ciudad_destino')->label('Ciudad Destino')->placeholder('Sin asignar'),
+                TextColumn::make('direccion')
+                    ->label('Dirección')
+                    ->searchable(),
+
+                TextColumn::make('telefono')
+                    ->label('Teléfono')
+                    ->searchable(),
+
+                TextColumn::make('tipo_orden')
+                    ->label('Tipo Orden')
+                    ->sortable(),
+
+                TextColumn::make('technician.name')
+                    ->label('Técnico')
+                    ->searchable()
+                    ->placeholder('Sin asignar')
+                    ->visible(fn () => auth()->user()->hasAnyRole(['administrador', 'operador'])),
+
+                TextColumn::make('fecha_trn')
+                    ->label('Fecha')
+                    ->date()
+                    ->sortable(),
 
                 BadgeColumn::make('estado_orden')
                     ->label('Estado')
                     ->colors([
-                        'success' => 'abierta',
-                        'info'    => 'programada',
-                        'warning' => 'en proceso',
-                        'primary' => 'cerrada',
-                        'danger'  => fn ($state) => in_array($state, ['fallida', 'rechazada']),
-                        'gray'    => 'anulada',
+                        'gray' => Orden::ESTADO_PENDIENTE,
+                        'warning' => Orden::ESTADO_ASIGNADA,
+                        'primary' => Orden::ESTADO_EN_SITIO,
+                        'info' => Orden::ESTADO_EN_PROCESO,
+                        'success' => Orden::ESTADO_EJECUTADA,
+                        'danger' => Orden::ESTADO_CERRADA,
+                        'gray' => Orden::ESTADO_ANULADA,
                     ])
                     ->searchable()
                     ->sortable(),
