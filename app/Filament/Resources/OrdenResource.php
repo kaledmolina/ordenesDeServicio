@@ -313,27 +313,15 @@ class OrdenResource extends Resource
                         }),
                     Tables\Actions\DeleteAction::make(),
                 ]),
-                Action::make('llegarSitio')
-                    ->label('Llegué a Sitio')
-                    ->icon('heroicon-o-map-pin')
-                    ->color('primary')
-                    // Show if assigned AND (user is technician OR field staff) - Simplified to just check status for now, logic handled by view scope
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA)
-                    ->action(function (Orden $record) {
-                        $record->update([
-                            'estado_orden' => Orden::ESTADO_EN_SITIO,
-                            'fecha_llegada' => now(),
-                        ]);
-                    }),
-                Action::make('iniciarAtencion')
-                    ->label('Iniciar Atención')
-                    ->icon('heroicon-o-play')
+                Action::make('aceptarOrden')
+                    ->label('Aceptar Orden')
+                    ->icon('heroicon-o-check')
                     ->color('info')
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EN_SITIO)
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA)
                     ->action(function (Orden $record) {
                         $user = Auth::user();
                         
-                        // Validar si el técnico ya tiene una orden en proceso (Solo si NO es admin/operador, aunque idealmente debería aplicar a todos los que ejecutan)
+                        // Validar si el técnico ya tiene una orden en proceso (Solo si NO es admin/operador)
                         if (! $user->hasAnyRole(['administrador', 'operador'])) {
                             $activeOrder = Orden::where('technician_id', $user->id)
                                 ->where('estado_orden', Orden::ESTADO_EN_PROCESO)
@@ -346,8 +334,6 @@ class OrdenResource extends Resource
                                     ->body('Ya tienes una orden en proceso. Por favor finalízala antes de iniciar una nueva.')
                                     ->danger()
                                     ->send();
-                                
-                                // Detener la ejecución
                                 return;
                             }
                         }
@@ -357,11 +343,22 @@ class OrdenResource extends Resource
                             'fecha_inicio_atencion' => now(),
                         ]);
                     }),
+                Action::make('llegarSitio')
+                    ->label('Llegué a Sitio')
+                    ->icon('heroicon-o-map-pin')
+                    ->color('primary')
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EN_PROCESO)
+                    ->action(function (Orden $record) {
+                        $record->update([
+                            'estado_orden' => Orden::ESTADO_EN_SITIO,
+                            'fecha_llegada' => now(),
+                        ]);
+                    }),
                 Action::make('finalizarAtencion')
                     ->label('Finalizar Atención')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EN_PROCESO)
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EN_SITIO)
                     ->action(function (Orden $record) {
                         $record->update([
                             'estado_orden' => Orden::ESTADO_EJECUTADA,

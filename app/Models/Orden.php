@@ -45,6 +45,7 @@ class Orden extends Model
         'fecha_inicio_atencion',
         'fecha_fin_atencion',
         'fecha_cierre',
+        'fecha_llegada',
     ];
 
     protected $casts = [
