@@ -317,7 +317,7 @@ class OrdenResource extends Resource
                     ->label('Aceptar Orden')
                     ->icon('heroicon-o-check')
                     ->color('info')
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA)
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA && $record->technician_id == Auth::id())
                     ->action(function (Orden $record) {
                         $user = Auth::user();
                         
@@ -380,7 +380,7 @@ class OrdenResource extends Resource
                     ->label('Anular Orden')
                     ->icon('heroicon-o-x-circle')
                     ->color('gray')
-                    ->visible(fn (Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_ANULADA, Orden::ESTADO_CERRADA]))
+                    ->visible(fn (Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_ANULADA, Orden::ESTADO_CERRADA]) && $record->technician_id == Auth::id())
                     ->requiresConfirmation()
                     ->action(function (Orden $record) {
                         $record->update([
