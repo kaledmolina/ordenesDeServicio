@@ -52,7 +52,7 @@ class OrdenResource extends Resource
                     ->schema([
                         Select::make('cliente_id')
                             ->label('Código - Nombres Cliente')
-                            ->relationship('cliente', 'name')
+                            ->relationship('cliente', 'name', fn (Builder $query) => $query->role('cliente'))
                             ->searchable()
                             ->preload()
                             ->live()

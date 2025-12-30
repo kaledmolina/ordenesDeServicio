@@ -29,7 +29,7 @@ class User extends Authenticatable implements FilamentUser // <-- Implementar el
         'telefono',
         'direccion',
         'is_active',
-
+        'codigo_contrato',
     ];
 
     /**
