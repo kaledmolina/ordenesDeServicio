@@ -183,8 +183,7 @@
                     </tr>
                 @endfor
                 <tr>
-                   <td colspan="4" style="border:none; text-align:center; font-weight:bold;">OBSERVACIONES DE EJECUCION</td>
-                   <td colspan="4" style="border:none;"></td>
+                   <td colspan="5" style="border:none; text-align:center; font-weight:bold;">OBSERVACIONES DE EJECUCION</td>
                 </tr>
             </tbody>
         </table>
