@@ -24,6 +24,11 @@ class Reportes extends Page implements HasForms
     protected static ?string $navigationGroup = 'Herramientas';
     protected static ?int $navigationSort = 4;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('administrador');
+    }
+
     // Propiedad para guardar los datos del formulario (fechas)
     public ?array $data = [];
 
