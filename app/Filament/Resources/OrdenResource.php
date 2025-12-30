@@ -229,7 +229,7 @@ class OrdenResource extends Resource
                     ->schema([
                         Repeater::make('articulos')
                             ->schema([
-                                TextInput::make('descripcion')->label('Descripcion')->columnSpan(3),
+                                TextInput::make('grupo_articulo')->label('Descripcion')->columnSpan(3),
                                 TextInput::make('asoc')->label('ASOC')->columnSpan(1),
                                 TextInput::make('valor_unitario')
                                     ->label('V. Unitario')
@@ -254,20 +254,20 @@ class OrdenResource extends Resource
                             ->columns(7)
                             ->defaultItems(1)
                             ->default([
-                                ['descripcion' => 'Esclavo con wifi (unidad)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Mecanico sc/apc', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Cable drop 1 hilo', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Grapas de muro', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Ont', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Canaleta plastica', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Abrazadera metalicas', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Chazos(unidad)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Tornillos(unidad)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Amarres plasticos (unidad)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Cinta bandi(centimetro)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Clavos', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Conector RG6', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['descripcion' => 'Cable coaxial', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Esclavo con wifi (unidad)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Mecanico sc/apc', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Cable drop 1 hilo', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Grapas de muro', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Ont', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Canaleta plastica', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Abrazadera metalicas', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Chazos(unidad)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Tornillos(unidad)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Amarres plasticos (unidad)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Cinta bandi(centimetro)', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Clavos', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Conector RG6', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
+                                ['grupo_articulo' => 'Cable coaxial', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
                             ])
                             ->live(), 
                     ]),
