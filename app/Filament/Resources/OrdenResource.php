@@ -322,7 +322,6 @@ class OrdenResource extends Resource
                         $record->update([
                             'estado_orden' => Orden::ESTADO_EN_SITIO,
                             'fecha_llegada' => now(),
-                            // Placeholder for geolocation
                         ]);
                     }),
                 Action::make('iniciarAtencion')

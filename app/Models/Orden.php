@@ -45,15 +45,6 @@ class Orden extends Model
         'fecha_inicio_atencion',
         'fecha_fin_atencion',
         'fecha_cierre',
-
-        // Geolocation
-        'latitud_llegada',
-        'longitud_llegada',
-        'fecha_llegada',
-        'latitud_inicio',
-        'longitud_inicio',
-        'latitud_fin',
-        'longitud_fin',
     ];
 
     protected $casts = [
