@@ -64,6 +64,7 @@ class Orden extends Model
     const ESTADO_EN_PROCESO = 'en_proceso';
     const ESTADO_EJECUTADA = 'ejecutada';
     const ESTADO_CERRADA = 'cerrada';
+    const ESTADO_ANULADA = 'anulada';
 
     public function cliente()
     {

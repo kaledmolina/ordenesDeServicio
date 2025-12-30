@@ -128,6 +128,7 @@ class OrdenResource extends Resource
                                 Orden::ESTADO_EN_PROCESO => 'En Proceso',
                                 Orden::ESTADO_EJECUTADA => 'Ejecutada',
                                 Orden::ESTADO_CERRADA => 'Cerrada',
+                                Orden::ESTADO_ANULADA => 'Anulada',
                             ])
                             ->default(Orden::ESTADO_PENDIENTE)
                             ->disabled()
@@ -275,6 +276,7 @@ class OrdenResource extends Resource
                         'info' => Orden::ESTADO_EN_PROCESO,
                         'success' => Orden::ESTADO_EJECUTADA,
                         'danger' => Orden::ESTADO_CERRADA,
+                        'gray' => Orden::ESTADO_ANULADA,
                     ]),
             ])
             ->filters([
@@ -324,6 +326,17 @@ class OrdenResource extends Resource
                         $record->update([
                             'estado_orden' => Orden::ESTADO_CERRADA,
                             'fecha_cierre' => now(),
+                        ]);
+                    }),
+                Action::make('anularOrden')
+                    ->label('Anular Orden')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('gray')
+                    ->visible(fn (Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_ANULADA, Orden::ESTADO_CERRADA]))
+                    ->requiresConfirmation()
+                    ->action(function (Orden $record) {
+                        $record->update([
+                            'estado_orden' => Orden::ESTADO_ANULADA,
                         ]);
                     }),
             ])
