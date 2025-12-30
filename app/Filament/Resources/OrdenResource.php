@@ -118,10 +118,18 @@ class OrdenResource extends Resource
                             ->label('NUMERO')
                             ->default(fn () => (Orden::max('numero_orden') ?? 0) + 1)
                             ->readOnly(),
-                        TextInput::make('estado_orden')
+                        Select::make('estado_orden')
                             ->label('ESTADO ORDEN')
+                            ->options([
+                                Orden::ESTADO_PENDIENTE => 'Pendiente',
+                                Orden::ESTADO_ASIGNADA => 'Asignada',
+                                Orden::ESTADO_EN_PROCESO => 'En Proceso',
+                                Orden::ESTADO_EJECUTADA => 'Ejecutada',
+                                Orden::ESTADO_CERRADA => 'Cerrada',
+                            ])
                             ->default(Orden::ESTADO_PENDIENTE)
-                            ->readOnly(),
+                            ->disabled()
+                            ->dehydrated(),
                     ])->columns(4),
 
                 // SECCIÓN 3: DATOS DE CONTACTO Y ESTADO
