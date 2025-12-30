@@ -63,6 +63,7 @@ class OrdenResource extends Resource
             ->schema([
                 // SECCIÓN 1: ENCABEZADO DEL CLIENTE
                 Section::make('Encabezado del Cliente')
+                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         Select::make('cliente_id')
                             ->label('Código - Nombres Cliente')
@@ -90,6 +91,7 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 2: DATOS DE LA ORDEN
                 Section::make('Datos de la Orden')
+                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         Select::make('tipo_orden')
                             ->label('TIPO ORDEN')
@@ -153,6 +155,7 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 3: DATOS DE CONTACTO Y ESTADO
                 Section::make('Datos de Contacto y Estado')
+                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         TextInput::make('direccion_asociado')->label('DIRECCION ASOCIADO'),
                         TextInput::make('telefono')->label('TELEFONO'),
@@ -163,6 +166,7 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 4: ASIGNACIÓN TÉCNICA Y DIAGNÓSTICO
                 Section::make('Asignación Técnica y Diagnóstico')
+                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         Select::make('technician_id') // Mapped to tecnico_principal
                             ->label('Empleado / Técnico')
@@ -214,6 +218,7 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 5: TOTALES Y OBSERVACIONES
                 Section::make('Totales y Observaciones')
+                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         TextInput::make('valor_total')->label('VALOR TOTAL')->numeric()->prefix('$'),
                         Textarea::make('observaciones')->label('OBSERVACIONES')->columnSpanFull(),
