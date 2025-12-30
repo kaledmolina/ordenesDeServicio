@@ -17,6 +17,7 @@ class AdminSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'administrador']);
         $operadorRole = Role::firstOrCreate(['name' => 'operador']);
         $tecnicoRole = Role::firstOrCreate(['name' => 'tecnico']);
+        $clienteRole = Role::firstOrCreate(['name' => 'cliente']);
 
         $user = User::firstOrCreate(
             ['email' => 'kaledmoly@gmail.com'],
