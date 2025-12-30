@@ -24,7 +24,7 @@ class FotoResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return !auth()->user()->hasRole('tecnico');
+        return auth()->user()->hasAnyRole(['administrador', 'operador']);
     }
 
     // No se necesita un formulario principal aquí

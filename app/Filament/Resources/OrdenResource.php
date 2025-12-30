@@ -47,8 +47,8 @@ class OrdenResource extends Resource
     {
         $query = parent::getEloquentQuery();
         
-        // Si el usuario es técnico, solo ve sus propias órdenes
-        if (Auth::user() && Auth::user()->hasRole('tecnico')) {
+        // Si el usuario NO es administrador ni operador, solo ve sus propias órdenes
+        if (!Auth::user()->hasAnyRole(['administrador', 'operador'])) {
             $query->where('technician_id', Auth::id());
         }
 
@@ -70,7 +70,7 @@ class OrdenResource extends Resource
                             ->searchable()
                             ->preload()
                             ->live()
-                            ->disabled(fn () => Auth::user()->hasRole('tecnico'))
+                            ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                             ->afterStateUpdated(function ($state, Forms\Set $set) {
                                 $user = User::find($state);
                                 if ($user) {
@@ -85,7 +85,7 @@ class OrdenResource extends Resource
                         Hidden::make('nombre_cliente'),
                         TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
                         TextInput::make('cedula')->label('CEDULA')->columnSpan(1),
-                        TextInput::make('precinto')->label('PRECINTO')->columnSpan(1)->disabled(fn () => Auth::user()->hasRole('tecnico')),
+                        TextInput::make('precinto')->label('PRECINTO')->columnSpan(1)->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador'])),
                     ])->columns(5),
 
                 // SECCIÓN 2: DATOS DE LA ORDEN
@@ -181,7 +181,7 @@ class OrdenResource extends Resource
                             ->label('Técnico Auxiliar')
                             ->relationship('tecnicoAuxiliar', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
                             ->searchable()
-                            ->disabled(fn () => Auth::user()->hasRole('tecnico'))
+                            ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                             ->preload(),
                         Select::make('solicitud_suscriptor')
                             ->label('SOLICITUD SUSCRIPTOR (Reporte)')
@@ -317,6 +317,7 @@ class OrdenResource extends Resource
                     ->label('Llegué a Sitio')
                     ->icon('heroicon-o-map-pin')
                     ->color('primary')
+                    // Show if assigned AND (user is technician OR field staff) - Simplified to just check status for now, logic handled by view scope
                     ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA)
                     ->action(function (Orden $record) {
                         $record->update([
@@ -332,8 +333,8 @@ class OrdenResource extends Resource
                     ->action(function (Orden $record) {
                         $user = Auth::user();
                         
-                        // Validar si el técnico ya tiene una orden en proceso
-                        if ($user->hasRole('tecnico')) {
+                        // Validar si el técnico ya tiene una orden en proceso (Solo si NO es admin/operador, aunque idealmente debería aplicar a todos los que ejecutan)
+                        if (! $user->hasAnyRole(['administrador', 'operador'])) {
                             $activeOrder = Orden::where('technician_id', $user->id)
                                 ->where('estado_orden', Orden::ESTADO_EN_PROCESO)
                                 ->where('id', '!=', $record->id)

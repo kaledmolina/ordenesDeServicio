@@ -14,6 +14,11 @@ class OperatorTrackingWidget extends Widget
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        return auth()->user()->hasAnyRole(['administrador', 'operador']);
+    }
+
     protected function getViewData(): array
     {
         // Fetch operators (technicians)
