@@ -23,9 +23,15 @@ class FilteredOrdersTable extends BaseWidget
     {
         $query = Orden::query();
 
-        // Si se ha pasado un estado en la URL, se aplica el filtro
+        // 1. Filtrar por rol: si NO es admin/operador, ver solo sus órdenes
+        $user = auth()->user();
+        if (!$user->hasAnyRole(['administrador', 'operador'])) {
+            $query->where('technician_id', $user->id);
+        }
+
+        // 2. Filtro (si viene de la URL)
         if (!empty($this->status) && $this->status !== 'todas') {
-            $query->where('status', $this->status);
+            $query->where('estado_orden', $this->status);
         }
 
         return $query;
@@ -55,7 +61,7 @@ class FilteredOrdersTable extends BaseWidget
                 TextColumn::make('ciudad_origen')->label('Ciudad Origen')->placeholder('Sin asignar'),
                 TextColumn::make('ciudad_destino')->label('Ciudad Destino')->placeholder('Sin asignar'),
 
-                BadgeColumn::make('status')
+                BadgeColumn::make('estado_orden')
                     ->label('Estado')
                     ->colors([
                         'success' => 'abierta',
