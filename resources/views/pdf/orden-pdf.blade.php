@@ -218,8 +218,8 @@
             <table width="100%">
                 <tr>
                     <td width="40%">
-                        <div>HORA REAL: HH:_______ M:_______</div>
-                        <div style="margin-top: 5px;">FECHA REAL:D_______M_______Y_______</div>
+                        <div>HORA REAL: HH:{{ $orden->fecha_fin_atencion ? $orden->fecha_fin_atencion->format('H') : '_______' }} M:{{ $orden->fecha_fin_atencion ? $orden->fecha_fin_atencion->format('i') : '_______' }}</div>
+                        <div style="margin-top: 5px;">FECHA REAL:D{{ $orden->fecha_fin_atencion ? $orden->fecha_fin_atencion->format('d') : '_______' }}M{{ $orden->fecha_fin_atencion ? $orden->fecha_fin_atencion->format('m') : '_______' }}Y{{ $orden->fecha_fin_atencion ? $orden->fecha_fin_atencion->format('Y') : '_______' }}</div>
                     </td>
                     <td width="30%" class="text-center" style="vertical-align: bottom;">
                         <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto;">FIRMA TÉCNICO</div>
