@@ -155,11 +155,13 @@
         <table class="materials-table">
             <thead>
                 <tr>
-                    <th style="width: 35%;">ARTICULO</th>
+                    <th style="width: 25%;">ARTICULO</th>
+                    <th style="width: 15%;">DESCRIPCION</th>
                     <th style="width: 5%;">CANT.</th>
                     <th style="width: 10%;">VALOR</th>
                     <th style="width: 5%;">ASOC</th>
-                    <th style="width: 35%;">ARTICULO</th>
+                    <th style="width: 25%;">ARTICULO</th>
+                    <th style="width: 15%;">DESCRIPCION</th>
                     <th style="width: 5%;">CANT.</th>
                     <th style="width: 10%;">VALOR</th>
                     <th style="width: 5%;">ASOC</th>
@@ -175,23 +177,25 @@
                         <!-- COL 1 -->
                         @if(isset($items[$i]))
                             <td>{{ $items[$i]['grupo_articulo'] ?? $items[$i]['descripcion'] ?? '---' }}</td>
+                            <td>{{ $items[$i]['descripcion'] ?? '' }}</td>
                             <td class="text-center">{{ !empty($items[$i]['cantidad']) ? $items[$i]['cantidad'] : '' }}</td>
                             <td class="text-right">{{ !empty($items[$i]['total']) ? number_format($items[$i]['total']) : '' }}</td>
                             <td class="text-center">{{ $items[$i]['asoc'] ?? '' }}</td>
                         @else
                             <td></td>
-                            <td></td><td></td><td></td>
+                            <td></td><td></td><td></td><td></td>
                         @endif
 
                         <!-- COL 2 -->
                         @if(isset($items[$i + $maxRows]))
                             <td>{{ $items[$i + $maxRows]['grupo_articulo'] ?? $items[$i + $maxRows]['descripcion'] ?? '' }}</td>
+                            <td>{{ $items[$i + $maxRows]['descripcion'] ?? '' }}</td>
                             <td class="text-center">{{ $items[$i + $maxRows]['cantidad'] ?? '' }}</td>
                             <td class="text-right">{{ number_format($items[$i + $maxRows]['total'] ?? 0) }}</td>
                             <td class="text-center">{{ $items[$i + $maxRows]['asoc'] ?? '' }}</td>
                         @else
                             <td></td>
-                            <td></td><td></td><td></td>
+                            <td></td><td></td><td></td><td></td>
                         @endif
                     </tr>
                 @endfor
