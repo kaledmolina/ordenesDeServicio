@@ -65,6 +65,7 @@ class OrdenResource extends Resource
                                     $set('nombre_cliente', $user->name);
                                 }
                             })
+                            ->required()
                             ->columnSpan(2),
                         Hidden::make('nombre_cliente'),
                         TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
@@ -111,8 +112,9 @@ class OrdenResource extends Resource
                             ->options([
                                 '1 Suscriptor' => '1 Suscriptor',
                                 '2 Red' => '2 Red',
-                            ]),
-                        Forms\Components\DatePicker::make('fecha_trn')->label('FECHA TRN'),
+                            ])
+                            ->required(),
+                        Forms\Components\DatePicker::make('fecha_trn')->label('FECHA TRN')->required(),
                         Forms\Components\DatePicker::make('fecha_vencimiento')->label('F. VENC'),
                         TextInput::make('numero_orden')
                             ->label('NUMERO')
@@ -149,6 +151,7 @@ class OrdenResource extends Resource
                             ->label('Empleado / Técnico')
                             ->relationship('technician', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
                             ->searchable()
+                            ->required()
                             ->preload()
                             ->live()
                             ->afterStateUpdated(function ($state, Forms\Set $set) {
