@@ -155,11 +155,11 @@
         <table class="materials-table">
             <thead>
                 <tr>
-                    <th style="width: 35%;">DESCRIPCION</th>
+                    <th style="width: 35%;">ARTICULO</th>
                     <th style="width: 5%;">CANT.</th>
                     <th style="width: 10%;">VALOR</th>
                     <th style="width: 5%;">ASOC</th>
-                    <th style="width: 35%;">DESCRIPCION</th>
+                    <th style="width: 35%;">ARTICULO</th>
                     <th style="width: 5%;">CANT.</th>
                     <th style="width: 10%;">VALOR</th>
                     <th style="width: 5%;">ASOC</th>

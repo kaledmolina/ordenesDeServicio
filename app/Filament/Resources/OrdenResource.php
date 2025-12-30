@@ -229,7 +229,7 @@ class OrdenResource extends Resource
                     ->schema([
                         Repeater::make('articulos')
                             ->schema([
-                                TextInput::make('grupo_articulo')->label('Descripcion')->columnSpan(3),
+                                TextInput::make('grupo_articulo')->label('Articulo')->columnSpan(3),
                                 TextInput::make('asoc')->label('ASOC')->columnSpan(1),
                                 TextInput::make('valor_unitario')
                                     ->label('V. Unitario')
