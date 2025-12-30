@@ -369,7 +369,7 @@ class OrdenResource extends Resource
                     ->label('Cerrar Orden')
                     ->icon('heroicon-o-lock-closed')
                     ->color('danger')
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA) // Or check permissions
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA && Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->action(function (Orden $record) {
                         $record->update([
                             'estado_orden' => Orden::ESTADO_CERRADA,
@@ -380,7 +380,7 @@ class OrdenResource extends Resource
                     ->label('Anular Orden')
                     ->icon('heroicon-o-x-circle')
                     ->color('gray')
-                    ->visible(fn (Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_ANULADA, Orden::ESTADO_CERRADA]) && $record->technician_id == Auth::id())
+                    ->visible(fn (Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_ANULADA, Orden::ESTADO_CERRADA]) && Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->requiresConfirmation()
                     ->action(function (Orden $record) {
                         $record->update([
