@@ -272,6 +272,15 @@ class OrdenResource extends Resource
                             ])
                             ->live(), 
                     ]),
+
+                // SECCIÓN 7: EQUIPOS INSTALADOS/RETIRADOS
+                Section::make('Equipos Instalados/Retirados')
+                    ->schema([
+                        TextInput::make('mac_router')->label('Mac Router'),
+                        TextInput::make('mac_bridge')->label('Mac Bridge'),
+                        TextInput::make('mac_ont')->label('Mac Ont'),
+                        TextInput::make('otros_equipos')->label('Otros Equipos'),
+                    ])->columns(2),
                 // Hidden fields for tracking
                 Hidden::make('fecha_asignacion'),
                 Hidden::make('fecha_inicio_atencion'),

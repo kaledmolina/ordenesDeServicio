@@ -46,6 +46,10 @@ class Orden extends Model
         'fecha_fin_atencion',
         'fecha_cierre',
         'fecha_llegada',
+        'mac_router',
+        'mac_bridge',
+        'mac_ont',
+        'otros_equipos',
     ];
 
     protected $casts = [

@@ -189,29 +189,29 @@
         </table>
 
         <!-- EQUIPOS INSTALADOS SUB-TABLE (INSIDE THE MATERIALS FLOW visually in image) -->
-        <table class="materials-table" style="margin-top: -6px; border-top: none;">
-             <tr>
-                 <td width="50%" rowspan="4" style="vertical-align: top; border-right: 1px solid #000;">
-                     <div>
-                         {{ $orden->solucion_tecnico ?? '' }} - {{ $orden->observaciones ?? '' }}
-                     </div>
-                 </td>
-                 <td width="20%">Mac Router</td>
-                 <td width="30%"></td>
-             </tr>
-             <tr>
-                 <td>Mac Eoce</td>
-                 <td></td>
-             </tr>
-             <tr>
-                 <td>Mac Ap</td>
-                 <td></td>
-             </tr>
-             <tr>
-                 <td>Direccion IP</td>
-                 <td></td>
-             </tr>
-        </table>
+         <table class="materials-table" style="margin-top: -6px; border-top: none;">
+              <tr>
+                  <td width="30%" rowspan="4" style="vertical-align: top; border-right: 1px solid #000;">
+                      <div>
+                          {{ $orden->solucion_tecnico ?? '' }} - {{ $orden->observaciones ?? '' }}
+                      </div>
+                  </td>
+                  <td width="20%">Mac Router</td>
+                  <td width="50%">{{ $orden->mac_router ?? '' }}</td>
+              </tr>
+              <tr>
+                  <td>Mac Bridge</td>
+                  <td>{{ $orden->mac_bridge ?? '' }}</td>
+              </tr>
+              <tr>
+                  <td>Mac Ont</td>
+                  <td>{{ $orden->mac_ont ?? '' }}</td>
+              </tr>
+              <tr>
+                  <td>Otros Equipos</td>
+                  <td>{{ $orden->otros_equipos ?? '' }}</td>
+              </tr>
+         </table>
         
         <!-- FOOTER / SIGNATURES -->
         <div style="margin-top: 20px;">
