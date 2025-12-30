@@ -158,7 +158,7 @@
                     <th style="width: 35%;">DESCRIPCION</th>
                     <th style="width: 5%;">CANT.</th>
                     <th style="width: 10%;">VALOR</th>
-                    <th style="width: 5%;">ASOC</th> <!-- Empty checkbox col? -->
+                    <th style="width: 5%;">ASOC</th>
                     <th style="width: 35%;">DESCRIPCION</th>
                     <th style="width: 5%;">CANT.</th>
                     <th style="width: 10%;">VALOR</th>
@@ -166,34 +166,33 @@
                 </tr>
             </thead>
             <tbody>
-            <tbody>
                 @php
                     $items = $orden->articulos ?? [];
-                    $maxRows = 14; // Fixed size to match paper look
+                    $maxRows = 14; 
                 @endphp
                 @for($i = 0; $i < $maxRows; $i++)
                     <tr>
                         <!-- COL 1 -->
                         @if(isset($items[$i]))
-                            <td>{{ $items[$i]['articulo'] ?: ($items[$i]['grupo_articulo'] ?? '---') }}</td>
+                            <td>{{ $items[$i]['descripcion'] ?? $items[$i]['grupo_articulo'] ?? '---' }}</td>
                             <td class="text-center">{{ !empty($items[$i]['cantidad']) ? $items[$i]['cantidad'] : '' }}</td>
                             <td class="text-right">{{ !empty($items[$i]['total']) ? number_format($items[$i]['total']) : '' }}</td>
-                            <td></td>
+                            <td class="text-center">{{ $items[$i]['asoc'] ?? '' }}</td>
                         @else
-                            <td></td> {{-- Empty cell if no DB item exists in this slot --}}
+                            <td></td>
                             <td></td><td></td><td></td>
                         @endif
 
                         <!-- COL 2 -->
-                            @if(isset($items[$i + $maxRows])) {{-- Very unlikely to have >14 items but logic supports it --}}
-                            <td>{{ $items[$i+$maxRows]['articulo'] ?? '' }}</td>
-                            <td class="text-center">{{ $items[$i+$maxRows]['cantidad'] ?? '' }}</td>
-                            <td class="text-right">{{ number_format($items[$i+$maxRows]['total'] ?? 0) }}</td>
-                            <td></td>
-                            @else
+                        @if(isset($items[$i + $maxRows]))
+                            <td>{{ $items[$i + $maxRows]['descripcion'] ?? $items[$i + $maxRows]['grupo_articulo'] ?? '' }}</td>
+                            <td class="text-center">{{ $items[$i + $maxRows]['cantidad'] ?? '' }}</td>
+                            <td class="text-right">{{ number_format($items[$i + $maxRows]['total'] ?? 0) }}</td>
+                            <td class="text-center">{{ $items[$i + $maxRows]['asoc'] ?? '' }}</td>
+                        @else
                             <td></td>
                             <td></td><td></td><td></td>
-                            @endif
+                        @endif
                     </tr>
                 @endfor
                 <tr>
