@@ -36,6 +36,11 @@ class ClienteResource extends Resource
         return parent::getEloquentQuery()->role('cliente');
     }
 
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()->hasRole('tecnico');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

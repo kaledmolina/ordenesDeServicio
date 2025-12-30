@@ -27,6 +27,11 @@ class UserResource extends Resource
     protected static ?string $modelLabel = 'Usuario';
     protected static ?string $navigationGroup = 'Administración';
 
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()->hasRole('tecnico');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

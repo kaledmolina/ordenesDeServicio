@@ -22,6 +22,11 @@ class FotoResource extends Resource
     protected static ?string $navigationGroup = 'Gestión de Órdenes';
     protected static ?int $navigationSort = 2;
 
+    public static function canViewAny(): bool
+    {
+        return !auth()->user()->hasRole('tecnico');
+    }
+
     // No se necesita un formulario principal aquí
     public static function form(\Filament\Forms\Form $form): \Filament\Forms\Form
     {

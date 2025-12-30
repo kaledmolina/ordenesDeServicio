@@ -30,6 +30,8 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\View as FormView;
+use Illuminate\Support\Facades\Auth;
+use Filament\Notifications\Notification;
 
 class OrdenResource extends Resource
 {
@@ -40,6 +42,18 @@ class OrdenResource extends Resource
 
     protected static ?string $navigationGroup = 'Gestión de Órdenes';
     protected static ?int $navigationSort = 1;
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        
+        // Si el usuario es técnico, solo ve sus propias órdenes
+        if (Auth::user() && Auth::user()->hasRole('tecnico')) {
+            $query->where('technician_id', Auth::id());
+        }
+
+        return $query;
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
@@ -56,6 +70,7 @@ class OrdenResource extends Resource
                             ->searchable()
                             ->preload()
                             ->live()
+                            ->disabled(fn () => Auth::user()->hasRole('tecnico'))
                             ->afterStateUpdated(function ($state, Forms\Set $set) {
                                 $user = User::find($state);
                                 if ($user) {
@@ -70,7 +85,7 @@ class OrdenResource extends Resource
                         Hidden::make('nombre_cliente'),
                         TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
                         TextInput::make('cedula')->label('CEDULA')->columnSpan(1),
-                        TextInput::make('precinto')->label('PRECINTO')->columnSpan(1),
+                        TextInput::make('precinto')->label('PRECINTO')->columnSpan(1)->disabled(fn () => Auth::user()->hasRole('tecnico')),
                     ])->columns(5),
 
                 // SECCIÓN 2: DATOS DE LA ORDEN
@@ -125,6 +140,7 @@ class OrdenResource extends Resource
                             ->options([
                                 Orden::ESTADO_PENDIENTE => 'Pendiente',
                                 Orden::ESTADO_ASIGNADA => 'Asignada',
+                                Orden::ESTADO_EN_SITIO => 'En Sitio',
                                 Orden::ESTADO_EN_PROCESO => 'En Proceso',
                                 Orden::ESTADO_EJECUTADA => 'Ejecutada',
                                 Orden::ESTADO_CERRADA => 'Cerrada',
@@ -165,6 +181,7 @@ class OrdenResource extends Resource
                             ->label('Técnico Auxiliar')
                             ->relationship('tecnicoAuxiliar', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
                             ->searchable()
+                            ->disabled(fn () => Auth::user()->hasRole('tecnico'))
                             ->preload(),
                         Select::make('solicitud_suscriptor')
                             ->label('SOLICITUD SUSCRIPTOR (Reporte)')
@@ -273,6 +290,7 @@ class OrdenResource extends Resource
                     ->colors([
                         'gray' => Orden::ESTADO_PENDIENTE,
                         'warning' => Orden::ESTADO_ASIGNADA,
+                        'primary' => Orden::ESTADO_EN_SITIO,
                         'info' => Orden::ESTADO_EN_PROCESO,
                         'success' => Orden::ESTADO_EJECUTADA,
                         'danger' => Orden::ESTADO_CERRADA,
@@ -295,12 +313,45 @@ class OrdenResource extends Resource
                         }),
                     Tables\Actions\DeleteAction::make(),
                 ]),
+                Action::make('llegarSitio')
+                    ->label('Llegué a Sitio')
+                    ->icon('heroicon-o-map-pin')
+                    ->color('primary')
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA)
+                    ->action(function (Orden $record) {
+                        $record->update([
+                            'estado_orden' => Orden::ESTADO_EN_SITIO,
+                            'fecha_llegada' => now(),
+                            // Placeholder for geolocation
+                        ]);
+                    }),
                 Action::make('iniciarAtencion')
                     ->label('Iniciar Atención')
                     ->icon('heroicon-o-play')
                     ->color('info')
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA)
+                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EN_SITIO)
                     ->action(function (Orden $record) {
+                        $user = Auth::user();
+                        
+                        // Validar si el técnico ya tiene una orden en proceso
+                        if ($user->hasRole('tecnico')) {
+                            $activeOrder = Orden::where('technician_id', $user->id)
+                                ->where('estado_orden', Orden::ESTADO_EN_PROCESO)
+                                ->where('id', '!=', $record->id)
+                                ->exists();
+
+                            if ($activeOrder) {
+                                Notification::make()
+                                    ->title('No puedes iniciar otra orden')
+                                    ->body('Ya tienes una orden en proceso. Por favor finalízala antes de iniciar una nueva.')
+                                    ->danger()
+                                    ->send();
+                                
+                                // Detener la ejecución
+                                return;
+                            }
+                        }
+
                         $record->update([
                             'estado_orden' => Orden::ESTADO_EN_PROCESO,
                             'fecha_inicio_atencion' => now(),

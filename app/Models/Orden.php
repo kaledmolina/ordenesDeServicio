@@ -45,6 +45,15 @@ class Orden extends Model
         'fecha_inicio_atencion',
         'fecha_fin_atencion',
         'fecha_cierre',
+
+        // Geolocation
+        'latitud_llegada',
+        'longitud_llegada',
+        'fecha_llegada',
+        'latitud_inicio',
+        'longitud_inicio',
+        'latitud_fin',
+        'longitud_fin',
     ];
 
     protected $casts = [
@@ -57,10 +66,14 @@ class Orden extends Model
         'fecha_inicio_atencion' => 'datetime',
         'fecha_fin_atencion' => 'datetime',
         'fecha_cierre' => 'datetime',
+        'fecha_llegada' => 'datetime',
     ];
+
+
 
     const ESTADO_PENDIENTE = 'pendiente';
     const ESTADO_ASIGNADA = 'asignada';
+    const ESTADO_EN_SITIO = 'en_sitio';
     const ESTADO_EN_PROCESO = 'en_proceso';
     const ESTADO_EJECUTADA = 'ejecutada';
     const ESTADO_CERRADA = 'cerrada';
