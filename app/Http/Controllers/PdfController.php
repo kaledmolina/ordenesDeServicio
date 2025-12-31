@@ -17,4 +17,10 @@ class PdfController extends Controller
         return $pdf->download('orden-'.$orden->numero_orden.'.pdf');
     }
 
+    public function streamOrdenPdf(Orden $orden)
+    {
+        $pdf = Pdf::loadView('pdf.orden-pdf', compact('orden'));
+        return $pdf->stream('orden-'.$orden->numero_orden.'.pdf');
+    }
+
 }

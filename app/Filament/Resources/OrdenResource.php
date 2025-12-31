@@ -317,7 +317,13 @@ class OrdenResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
+                    // Tables\Actions\ViewAction::make(),
+                    Action::make('view')
+                        ->label('Ver')
+                        ->icon('heroicon-o-eye')
+                        ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                        ->openUrlInNewTab(),
+
                     Tables\Actions\EditAction::make(),
                     Action::make('downloadPdf')
                         ->label('Descargar PDF')
