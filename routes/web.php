@@ -5,9 +5,9 @@ use App\Http\Controllers\FotoController;
 use App\Http\Controllers\PdfController;
 
 
-Route::get('/', function () {
-    return view('welcome');
-});
+use App\Http\Controllers\LandingController;
+
+Route::get('/', [LandingController::class, 'index'])->name('home');
 
 Route::get('/private-fotos/{ordenFoto}', [FotoController::class, 'show'])
     ->middleware('auth')
