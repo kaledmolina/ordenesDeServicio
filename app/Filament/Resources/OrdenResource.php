@@ -539,7 +539,19 @@ class OrdenResource extends Resource
                                 TextInput::make('mac_ont')->label('Mac Ont'),
                                 TextInput::make('otros_equipos')->label('Otros Equipos'),
                             ])->columns(2)
-                            ->collapsed(), // Collapsed by default
+                            ->collapsed(),
+
+                        Section::make('Evidencia Fotográfica')
+                            ->schema([
+                                FileUpload::make('evidencias')
+                                    ->label('Fotos del Servicio')
+                                    ->multiple()
+                                    ->image()
+                                    ->directory('orden-fotos') // Public disk or private? Controller uses 'local' 'private/orden-fotos'. Let's use 'orden-fotos' on public for Filament usually, or match controller if possible. Stick to default disk for now or 'public'.
+                                    ->visibility('public') // Assuming public for Filament view ease
+                                    ->columnSpanFull(),
+                            ])
+                            ->collapsed(),
                     ])
                     ->action(function (Orden $record, array $data) {
                         $record->update([
@@ -547,12 +559,22 @@ class OrdenResource extends Resource
                             'fecha_fin_atencion' => now(),
                             'firma_tecnico' => $data['firma_tecnico'],
                             'firma_suscriptor' => $data['firma_suscriptor'],
-                            'articulos' => $data['articulos'] ?? $record->articulos, // Use new items or keep existing if not provided/empty? Actually form passes array, so it updates.
+                            'articulos' => $data['articulos'] ?? $record->articulos, 
                             'mac_router' => $data['mac_router'],
                             'mac_bridge' => $data['mac_bridge'],
                             'mac_ont' => $data['mac_ont'],
                             'otros_equipos' => $data['otros_equipos'],
                         ]);
+                        
+                        // Guardar evidencias
+                        if (!empty($data['evidencias'])) {
+                            foreach ($data['evidencias'] as $path) {
+                                $record->fotos()->create([
+                                    'path' => $path,
+                                    // 'tipo' => 'evidencia' // If specific column exists
+                                ]);
+                            }
+                        }
                     }),
                 Action::make('cerrarOrden')
                     ->label('Cerrar Orden')
