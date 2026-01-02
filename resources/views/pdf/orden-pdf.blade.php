@@ -223,7 +223,18 @@
                     </td>
                     <td width="30%" class="text-center" style="vertical-align: bottom;">
                         @if($orden->firma_tecnico)
-                            <img src="{{ public_path('storage/' . $orden->firma_tecnico) }}" style="max-width: 150px; max-height: 60px; margin-bottom: 5px;">
+                            @php
+                                $pathTecnico = storage_path('app/public/' . $orden->firma_tecnico);
+                                if (file_exists($pathTecnico)) {
+                                    $dataTecnico = file_get_contents($pathTecnico);
+                                    $base64Tecnico = 'data:image/png;base64,' . base64_encode($dataTecnico);
+                                } else {
+                                    $base64Tecnico = null;
+                                }
+                            @endphp
+                            @if($base64Tecnico)
+                                <img src="{{ $base64Tecnico }}" style="max-width: 150px; max-height: 60px; margin-bottom: 5px;">
+                            @endif
                             <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto;">FIRMA TÉCNICO</div>
                         @else
                             <div style="height: 60px;"></div>
@@ -232,7 +243,18 @@
                     </td>
                     <td width="30%" class="text-center" style="vertical-align: bottom;">
                         @if($orden->firma_suscriptor)
-                            <img src="{{ public_path('storage/' . $orden->firma_suscriptor) }}" style="max-width: 150px; max-height: 60px; margin-bottom: 5px;">
+                            @php
+                                $pathSuscriptor = storage_path('app/public/' . $orden->firma_suscriptor);
+                                if (file_exists($pathSuscriptor)) {
+                                    $dataSuscriptor = file_get_contents($pathSuscriptor);
+                                    $base64Suscriptor = 'data:image/png;base64,' . base64_encode($dataSuscriptor);
+                                } else {
+                                    $base64Suscriptor = null;
+                                }
+                            @endphp
+                            @if($base64Suscriptor)
+                                <img src="{{ $base64Suscriptor }}" style="max-width: 150px; max-height: 60px; margin-bottom: 5px;">
+                            @endif
                             <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto;">FIRMA SUSCRIPTOR</div>
                         @else
                             <div style="height: 60px;"></div>
