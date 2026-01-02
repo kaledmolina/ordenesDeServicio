@@ -24,7 +24,7 @@ class FotoResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->hasAnyRole(['administrador', 'operador']);
+        return auth()->user()->hasAnyRole(['administrador', 'operador', 'tecnico']);
     }
 
     // No se necesita un formulario principal aquí
@@ -36,7 +36,13 @@ class FotoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(Orden::query()->withCount('fotos'))
+            ->query(function () {
+                $query = Orden::query()->withCount('fotos');
+                if (auth()->user()->hasRole('tecnico')) {
+                    $query->where('technician_id', auth()->id());
+                }
+                return $query;
+            })
             ->columns([
                 TextColumn::make('numero_orden')->label('N° de Orden')->searchable(),
                 TextColumn::make('nombre_cliente')->label('Cliente')->searchable(),
