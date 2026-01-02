@@ -294,16 +294,16 @@ class OrdenResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('numero_orden')
-                    ->label('Numero de orden')
+                    ->label('N° Orden')
                     ->searchable()
                     ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab(),
-                TextColumn::make('nombre_cliente')->label('Nombre del cliente')->searchable(),
-                TextColumn::make('numero_expediente')->label('Numero de expediente')->searchable(),
-                TextColumn::make('placa')->label('Placa')->searchable(),
-                TextColumn::make('valor_servicio')->label('Valor del servicio')->money('COP')->sortable(),
-                TextColumn::make('technician.name')->label('Tecnico')->searchable(),
-                TextColumn::make('servicio')->label('Tipo de servicio')->searchable(),
+                TextColumn::make('nombre_cliente')->label('Cliente')->searchable(),
+                TextColumn::make('direccion')->label('Dirección')->searchable()->limit(30),
+                TextColumn::make('telefono')->label('Teléfono')->searchable(),
+                TextColumn::make('tipo_orden')->label('Tipo Orden')->searchable(),
+                TextColumn::make('technician.name')->label('Técnico')->searchable(),
+                TextColumn::make('fecha_trn')->label('Fecha')->date('d/m/Y')->sortable(),
                 BadgeColumn::make('estado_orden')
                     ->label('Estado')
                     ->colors([
