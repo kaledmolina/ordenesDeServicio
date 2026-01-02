@@ -34,6 +34,7 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\View as FormView;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
+use Saade\FilamentAutograph\Forms\Components\SignaturePad;
 
 class OrdenResource extends Resource
 {
@@ -283,6 +284,18 @@ class OrdenResource extends Resource
                         TextInput::make('mac_ont')->label('Mac Ont'),
                         TextInput::make('otros_equipos')->label('Otros Equipos'),
                     ])->columns(2),
+
+                // SECCIÓN 8: FIRMAS
+                Section::make('Firmas')
+                    ->schema([
+                        SignaturePad::make('firma_tecnico')
+                            ->label('Firma Técnico')
+                            ->columnSpan(1),
+                        SignaturePad::make('firma_suscriptor')
+                            ->label('Firma Suscriptor')
+                            ->columnSpan(1),
+                    ])->columns(2),
+
                 // Hidden fields for tracking
                 Hidden::make('fecha_asignacion'),
                 Hidden::make('fecha_inicio_atencion'),
