@@ -224,12 +224,16 @@
                     <td width="30%" class="text-center" style="vertical-align: bottom;">
                         @if($orden->firma_tecnico)
                             @php
-                                $pathTecnico = storage_path('app/public/' . $orden->firma_tecnico);
-                                if (file_exists($pathTecnico)) {
-                                    $dataTecnico = file_get_contents($pathTecnico);
-                                    $base64Tecnico = 'data:image/png;base64,' . base64_encode($dataTecnico);
-                                } else {
-                                    $base64Tecnico = null;
+                                $base64Tecnico = null;
+                                try {
+                                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($orden->firma_tecnico)) {
+                                        $pathTecnico = \Illuminate\Support\Facades\Storage::disk('public')->path($orden->firma_tecnico);
+                                        $dataTecnico = file_get_contents($pathTecnico);
+                                        $type = pathinfo($pathTecnico, PATHINFO_EXTENSION);
+                                        $base64Tecnico = 'data:image/' . $type . ';base64,' . base64_encode($dataTecnico);
+                                    }
+                                } catch (\Exception $e) {
+                                    // Siently fail or log if needed
                                 }
                             @endphp
                             @if($base64Tecnico)
@@ -244,12 +248,16 @@
                     <td width="30%" class="text-center" style="vertical-align: bottom;">
                         @if($orden->firma_suscriptor)
                             @php
-                                $pathSuscriptor = storage_path('app/public/' . $orden->firma_suscriptor);
-                                if (file_exists($pathSuscriptor)) {
-                                    $dataSuscriptor = file_get_contents($pathSuscriptor);
-                                    $base64Suscriptor = 'data:image/png;base64,' . base64_encode($dataSuscriptor);
-                                } else {
-                                    $base64Suscriptor = null;
+                                $base64Suscriptor = null;
+                                try {
+                                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($orden->firma_suscriptor)) {
+                                        $pathSuscriptor = \Illuminate\Support\Facades\Storage::disk('public')->path($orden->firma_suscriptor);
+                                        $dataSuscriptor = file_get_contents($pathSuscriptor);
+                                        $type = pathinfo($pathSuscriptor, PATHINFO_EXTENSION);
+                                        $base64Suscriptor = 'data:image/' . $type . ';base64,' . base64_encode($dataSuscriptor);
+                                    }
+                                } catch (\Exception $e) {
+                                    // Silently fail
                                 }
                             @endphp
                             @if($base64Suscriptor)
