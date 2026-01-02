@@ -155,7 +155,19 @@
 
                 <div class="space-y-8">
                     @foreach($orders as $orden)
-                    <div class="bg-white rounded-3xl shadow-card p-0 border border-slate-100 overflow-hidden hover:shadow-glow transition-all duration-300 animate__animated animate__fadeInUp group">
+                    @php
+                        $animEffect = match($orden->estado_orden) {
+                            'pendiente' => 'animate__fadeInUp',
+                            'asignada' => 'animate__fadeInLeft',
+                            'en_sitio' => 'animate__fadeInRight',
+                            'en_proceso' => 'animate__pulse animate__infinite',
+                            'ejecutada' => 'animate__tada',
+                            'cerrada' => 'animate__zoomIn',
+                            'anulada' => 'animate__shakeX',
+                            default => 'animate__fadeInUp'
+                        };
+                    @endphp
+                    <div class="bg-white rounded-3xl shadow-card p-0 border border-slate-100 overflow-hidden hover:shadow-glow transition-all duration-300 animate__animated {{ $animEffect }} group">
                         <!-- Top Bar -->
                         <div class="grad-bg px-8 py-5 border-b border-slate-50 flex flex-wrap gap-4 justify-between items-center bg-white relative">
                             <div class="flex items-center gap-4">
@@ -304,6 +316,19 @@
     <canvas id="interactionCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-60"></canvas>
 
     <script>
+        // Auto-scroll to results if they exist
+        @if(isset($search))
+        document.addEventListener("DOMContentLoaded", function() {
+            const element = document.getElementById("resultados");
+            if(element) {
+                // Short delay to ensure animations start rendering
+                setTimeout(() => {
+                    element.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 500);
+            }
+        });
+        @endif
+
         // Particle System for "Minigame" effect
         const canvas = document.getElementById('interactionCanvas');
         const ctx = canvas.getContext('2d');
