@@ -290,9 +290,13 @@ class OrdenResource extends Resource
                     ->schema([
                         SignaturePad::make('firma_tecnico')
                             ->label('Firma Técnico')
+                            ->penColor('#000000') // Tinta negra
+                            ->confirmable()
                             ->columnSpan(1),
                         SignaturePad::make('firma_suscriptor')
                             ->label('Firma Suscriptor')
+                            ->penColor('#000000') // Tinta negra
+                            ->confirmable()
                             ->columnSpan(1),
                     ])->columns(2),
 
