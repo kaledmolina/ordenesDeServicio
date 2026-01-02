@@ -495,10 +495,83 @@ class OrdenResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EN_SITIO)
-                    ->action(function (Orden $record) {
+                    ->mountUsing(fn (Forms\ComponentContainer $form, Orden $record) => $form->fill([
+                        'articulos' => $record->articulos,
+                        'mac_router' => $record->mac_router,
+                        'mac_bridge' => $record->mac_bridge,
+                        'mac_ont' => $record->mac_ont,
+                        'otros_equipos' => $record->otros_equipos,
+                    ]))
+                    ->form([
+                        Section::make('Firmas Obligatorias')
+                            ->schema([
+                                SignaturePad::make('firma_tecnico')
+                                    ->label('Firma Técnico')
+                                    ->penColor('#000000')
+                                    ->confirmable()
+                                    ->required() // Obligatorio
+                                    ->columnSpan(1),
+                                SignaturePad::make('firma_suscriptor')
+                                    ->label('Firma Suscriptor')
+                                    ->penColor('#000000')
+                                    ->confirmable()
+                                    ->required() // Obligatorio
+                                    ->columnSpan(1),
+                            ])->columns(2),
+
+                        Section::make('Detalle de Artículos')
+                            ->schema([
+                                Repeater::make('articulos')
+                                    ->schema([
+                                        TextInput::make('grupo_articulo')->label('Articulo')->columnSpan(2),
+                                        Textarea::make('descripcion')->label('Descripcion')->rows(1)->columnSpan(2),
+                                        TextInput::make('asoc')->label('ASOC')->columnSpan(1),
+                                        TextInput::make('valor_unitario')
+                                            ->label('V. Unitario')
+                                            ->numeric()
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                                $cant = $get('cantidad') ?? 0;
+                                                $set('total', $state * $cant);
+                                            })
+                                            ->columnSpan(1),
+                                        TextInput::make('cantidad')
+                                            ->label('Cant.')
+                                            ->numeric()
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                                $val = $get('valor_unitario') ?? 0;
+                                                $set('total', $state * $val);
+                                            })
+                                            ->columnSpan(1),
+                                        TextInput::make('total')->label('Total')->numeric()->readOnly()->columnSpan(1),
+                                    ])
+                                    ->columns(8)
+                                    ->defaultItems(0) // No items by default here to keep it clean, or 1 if preferred
+                                    ->live(), 
+                            ])
+                            ->collapsed(), // Collapsed by default to keep modal clean
+
+                        Section::make('Equipos Instalados/Retirados')
+                            ->schema([
+                                TextInput::make('mac_router')->label('Mac Router'),
+                                TextInput::make('mac_bridge')->label('Mac Bridge'),
+                                TextInput::make('mac_ont')->label('Mac Ont'),
+                                TextInput::make('otros_equipos')->label('Otros Equipos'),
+                            ])->columns(2)
+                            ->collapsed(), // Collapsed by default
+                    ])
+                    ->action(function (Orden $record, array $data) {
                         $record->update([
                             'estado_orden' => Orden::ESTADO_EJECUTADA,
                             'fecha_fin_atencion' => now(),
+                            'firma_tecnico' => $data['firma_tecnico'],
+                            'firma_suscriptor' => $data['firma_suscriptor'],
+                            'articulos' => $data['articulos'] ?? $record->articulos, // Use new items or keep existing if not provided/empty? Actually form passes array, so it updates.
+                            'mac_router' => $data['mac_router'],
+                            'mac_bridge' => $data['mac_bridge'],
+                            'mac_ont' => $data['mac_ont'],
+                            'otros_equipos' => $data['otros_equipos'],
                         ]);
                     }),
                 Action::make('cerrarOrden')
