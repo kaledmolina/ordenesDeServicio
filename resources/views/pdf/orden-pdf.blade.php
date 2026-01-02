@@ -224,13 +224,71 @@
                     <td width="30%" class="text-center" style="vertical-align: bottom;">
                         @if($orden->firma_tecnico)
                             @php
+        // Helper function to force image to black
+        if (!function_exists('forceBlackSignature')) {
+            function forceBlackSignature($base64String) {
+                if (!$base64String) return null;
+
+                try {
+                    // Extract data from base64
+                    $data = explode(',', $base64String);
+                    if (count($data) < 2) return $base64String; // Return original if format unexpected
+
+                    $imgData = base64_decode($data[1]);
+                    $im = imagecreatefromstring($imgData);
+
+                    if (!$im) return $base64String;
+
+                    // Get dimensions
+                    $width = imagesx($im);
+                    $height = imagesy($im);
+
+                    // Create new true color image with alpha transparency
+                    $newImg = imagecreatetruecolor($width, $height);
+                    imagealphablending($newImg, false);
+                    imagesavealpha($newImg, true);
+                    $transparent = imagecolorallocatealpha($newImg, 255, 255, 255, 127);
+                    imagefilledrectangle($newImg, 0, 0, $width, $height, $transparent);
+
+                    // Colors
+                    $black = imagecolorallocate($newImg, 0, 0, 0);
+
+                    // Iterate pixels
+                    for ($x = 0; $x < $width; $x++) {
+                        for ($y = 0; $y < $height; $y++) {
+                            $rgb = imagecolorat($im, $x, $y);
+                            $colors = imagecolorsforindex($im, $rgb);
+
+                            // If not fully transparent, make it black
+                            if ($colors['alpha'] < 120) {
+                                imagesetpixel($newImg, $x, $y, $black);
+                            }
+                        }
+                    }
+
+                    // Output to base64
+                    ob_start();
+                    imagepng($newImg);
+                    $contents = ob_get_contents();
+                    ob_end_clean();
+
+                    imagedestroy($im);
+                    imagedestroy($newImg);
+
+                    return 'data:image/png;base64,' . base64_encode($contents);
+                } catch (\Exception $e) {
+                    return $base64String; // Fallback to original on error
+                }
+            }
+        }
+
                                 $base64Tecnico = null;
                                 try {
                                     $path = $orden->firma_tecnico;
                                     
                                     // Check if it's already a Base64 string
                                     if (str_starts_with($path, 'data:image')) {
-                                        $base64Tecnico = $path;
+                                        $base64Tecnico = forceBlackSignature($path);
                                     } else {
                                         // Legacy file path logic
                                         $disk = 'public'; // Default speculation
@@ -247,7 +305,8 @@
                                         if ($fullPath && file_exists($fullPath)) {
                                             $dataTecnico = file_get_contents($fullPath);
                                             $type = pathinfo($fullPath, PATHINFO_EXTENSION);
-                                            $base64Tecnico = 'data:image/' . $type . ';base64,' . base64_encode($dataTecnico);
+                                            $base64Raw = 'data:image/' . $type . ';base64,' . base64_encode($dataTecnico);
+                                            $base64Tecnico = forceBlackSignature($base64Raw);
                                         }
                                     }
                                 } catch (\Exception $e) {
@@ -271,7 +330,7 @@
                                     
                                     // Check if it's already a Base64 string
                                     if (str_starts_with($path, 'data:image')) {
-                                        $base64Suscriptor = $path;
+                                        $base64Suscriptor = forceBlackSignature($path);
                                     } else {
                                         // Legacy file path logic
                                         $fullPath = null;
@@ -287,7 +346,8 @@
                                         if ($fullPath && file_exists($fullPath)) {
                                             $dataSuscriptor = file_get_contents($fullPath);
                                             $type = pathinfo($fullPath, PATHINFO_EXTENSION);
-                                            $base64Suscriptor = 'data:image/' . $type . ';base64,' . base64_encode($dataSuscriptor);
+                                            $base64Raw = 'data:image/' . $type . ';base64,' . base64_encode($dataSuscriptor);
+                                            $base64Suscriptor = forceBlackSignature($base64Raw);
                                         }
                                     }
                                 } catch (\Exception $e) {
