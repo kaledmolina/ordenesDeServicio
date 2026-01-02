@@ -226,14 +226,27 @@
                             @php
                                 $base64Tecnico = null;
                                 try {
-                                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($orden->firma_tecnico)) {
-                                        $pathTecnico = \Illuminate\Support\Facades\Storage::disk('public')->path($orden->firma_tecnico);
-                                        $dataTecnico = file_get_contents($pathTecnico);
-                                        $type = pathinfo($pathTecnico, PATHINFO_EXTENSION);
+                                    $path = $orden->firma_tecnico;
+                                    $disk = 'public'; // Default speculation
+                                    $fullPath = null;
+
+                                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+                                        $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
+                                    } elseif (\Illuminate\Support\Facades\Storage::exists($path)) {
+                                        $fullPath = \Illuminate\Support\Facades\Storage::path($path);
+                                    } elseif (file_exists(public_path('storage/' . $path))) {
+                                        $fullPath = public_path('storage/' . $path);
+                                    } else {
+                                        // Last resort: maybe it is stored as "signatures/..." and we need to check from app root?
+                                        // Or maybe the user is on local driver which is private.
+                                    }
+
+                                    if ($fullPath && file_exists($fullPath)) {
+                                        $dataTecnico = file_get_contents($fullPath);
+                                        $type = pathinfo($fullPath, PATHINFO_EXTENSION);
                                         $base64Tecnico = 'data:image/' . $type . ';base64,' . base64_encode($dataTecnico);
                                     }
                                 } catch (\Exception $e) {
-                                    // Siently fail or log if needed
                                 }
                             @endphp
                             @if($base64Tecnico)
@@ -250,14 +263,23 @@
                             @php
                                 $base64Suscriptor = null;
                                 try {
-                                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($orden->firma_suscriptor)) {
-                                        $pathSuscriptor = \Illuminate\Support\Facades\Storage::disk('public')->path($orden->firma_suscriptor);
-                                        $dataSuscriptor = file_get_contents($pathSuscriptor);
-                                        $type = pathinfo($pathSuscriptor, PATHINFO_EXTENSION);
+                                    $path = $orden->firma_suscriptor;
+                                    $fullPath = null;
+
+                                    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+                                        $fullPath = \Illuminate\Support\Facades\Storage::disk('public')->path($path);
+                                    } elseif (\Illuminate\Support\Facades\Storage::exists($path)) {
+                                        $fullPath = \Illuminate\Support\Facades\Storage::path($path);
+                                    } elseif (file_exists(public_path('storage/' . $path))) {
+                                        $fullPath = public_path('storage/' . $path);
+                                    }
+
+                                    if ($fullPath && file_exists($fullPath)) {
+                                        $dataSuscriptor = file_get_contents($fullPath);
+                                        $type = pathinfo($fullPath, PATHINFO_EXTENSION);
                                         $base64Suscriptor = 'data:image/' . $type . ';base64,' . base64_encode($dataSuscriptor);
                                     }
                                 } catch (\Exception $e) {
-                                    // Silently fail
                                 }
                             @endphp
                             @if($base64Suscriptor)
