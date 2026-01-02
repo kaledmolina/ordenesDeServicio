@@ -85,14 +85,7 @@
             <div class="animate__animated animate__fadeInDown">
                 <!-- Logo Centered -->
                 <div class="flex justify-center mb-8">
-                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-brand-500/50">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        </div>
-                        <span class="text-3xl font-black text-white tracking-tight">
-                            INTALNET
-                        </span>
-                    </div>
+                     <img src="https://www.intalnet.com/assets/img/logo.png" alt="Intalnet Logo" class="h-24 md:h-32 w-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300">
                 </div>
 
                 <span class="inline-block py-1 px-3 rounded-full bg-brand-800/50 border border-brand-500/30 text-brand-200 text-xs font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">
