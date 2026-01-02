@@ -24,6 +24,8 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Forms\Get;
 
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Components\FileUpload;
@@ -317,7 +319,69 @@ class OrdenResource extends Resource
                     ]),
             ])
             ->filters([
-                //
+                SelectFilter::make('estado_orden')
+                    ->label('Estado')
+                    ->options([
+                        Orden::ESTADO_PENDIENTE => 'Pendiente',
+                        Orden::ESTADO_ASIGNADA => 'Asignada',
+                        Orden::ESTADO_EN_SITIO => 'En Sitio',
+                        Orden::ESTADO_EN_PROCESO => 'En Proceso',
+                        Orden::ESTADO_EJECUTADA => 'Ejecutada',
+                        Orden::ESTADO_CERRADA => 'Cerrada',
+                        Orden::ESTADO_ANULADA => 'Anulada',
+                    ]),
+                SelectFilter::make('technician_id')
+                    ->label('Técnico')
+                    ->relationship('technician', 'name')
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('tipo_orden')
+                    ->label('Tipo de Orden')
+                    ->options([
+                        '003' => '003 PUNTO ADICIONAL',
+                        '005' => '005 CORTE',
+                        '008' => '008 TRASLADOS',
+                        '009' => '009 RECONEXIONES',
+                        '015' => '015 MULTA',
+                        '016' => '016 RETIRO DEFINITIVO',
+                        '017' => '017 EMISION DE PUBLICIDAD',
+                        '021' => '021 MATERIALES',
+                        '022' => '022 SOPORTE REMOTO',
+                        '023' => '023 DESCUENTO INTERNET',
+                        '024' => '024 INTERNET',
+                        '025' => '025 REVISION TECNICA',
+                        '026' => '026 CORTE INTERNET',
+                        '027' => '027 SUSPENSION INTERNET',
+                        '028' => '028 CAMBIO ESTADO',
+                        '029' => '029 TRASLADO INTERNO INT',
+                        '030' => '030 CUENTA COBRO',
+                        '031' => '031 COPIAS Y REPRODUCCIONES',
+                        '032' => '032 TRASLADO INTERNET',
+                        '033' => '033 RECONEXION INTERNET',
+                        '034' => '034 RETIRO INTERNET',
+                        '035' => '035 ORDEN DE APOYO',
+                        '036' => '036 INSTALACION CAMARA',
+                        '037' => '037 CAMBIO CONTRASEÑA',
+                        '044' => '044 CAMBIO PLAN INTERNET',
+                        '048' => '048 CAMBIO PLAN TV',
+                    ])
+                    ->searchable(),
+                Filter::make('fecha_trn')
+                    ->form([
+                        Forms\Components\DatePicker::make('fecha_desde')->label('Fecha Desde'),
+                        Forms\Components\DatePicker::make('fecha_hasta')->label('Fecha Hasta'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['fecha_desde'],
+                                fn (Builder $query, $date) => $query->whereDate('fecha_trn', '>=', $date),
+                            )
+                            ->when(
+                                $data['fecha_hasta'],
+                                fn (Builder $query, $date) => $query->whereDate('fecha_trn', '<=', $date),
+                            );
+                    }),
             ])
             ->actions([
                 ActionGroup::make([
