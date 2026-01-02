@@ -322,7 +322,8 @@ class OrdenResource extends Resource
                         ->label('Ver')
                         ->icon('heroicon-o-eye')
                         ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
-                        ->openUrlInNewTab(),
+                        ->openUrlInNewTab()
+                        ->extraAttributes(['target' => '_blank']),
 
                     Tables\Actions\EditAction::make(),
                     Action::make('downloadPdf')
