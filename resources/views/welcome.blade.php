@@ -66,55 +66,44 @@
 
 <body class="bg-gray-50 font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
 
-    <!-- Navbar -->
-    <nav class="glass-nav fixed w-full z-50 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20 items-center">
-                <div class="flex items-center gap-2 animate__animated animate__fadeInLeft">
-                    <!-- Modern Logo Representation -->
-                    <div class="w-10 h-10 bg-gradient-to-br from-brand-600 to-brand-800 rounded-xl flex items-center justify-center text-white shadow-lg transform hover:rotate-12 transition-transform duration-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    </div>
-                    <span class="text-2xl font-black text-slate-800 tracking-tight">
-                        INTALNET
-                    </span>
-                </div>
-                <div class="hidden md:flex items-center gap-8 animate__animated animate__fadeInRight">
-                    <a href="https://www.intalnet.com/" class="text-sm font-semibold text-slate-500 hover:text-brand-600 transition-colors relative group">
-                        Inicio
-                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-600 transition-all group-hover:w-full"></span>
-                    </a>
-                    <a href="https://www.intalnet.com/planes" class="text-sm font-semibold text-slate-500 hover:text-brand-600 transition-colors relative group">
-                        Planes
-                        <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-600 transition-all group-hover:w-full"></span>
-                    </a>
-                    <a href="/admin/login" class="bg-slate-900 text-white hover:bg-brand-600 px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        Portal Interno
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <!-- Hero Section -->
-    <section class="hero-pattern relative min-h-[85vh] flex items-center justify-center pt-20 overflow-hidden">
+    <section class="hero-pattern relative min-h-screen flex items-center justify-center overflow-hidden">
         <!-- Floating Elements -->
         <div class="absolute top-1/4 left-10 w-24 h-24 bg-brand-400 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
         <div class="absolute top-1/3 right-10 w-32 h-32 bg-accent-400 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
         
+        <!-- Access Button Absolute Top Right -->
+        <div class="absolute top-6 right-6 z-50">
+             <a href="/admin/login" class="text-white/80 hover:text-white text-sm font-semibold transition-colors flex items-center gap-2 group">
+                Portal Funcionarios
+                <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+             </a>
+        </div>
+
         <div class="relative z-10 max-w-5xl mx-auto px-4 text-center">
             
             <div class="animate__animated animate__fadeInDown">
-                <span class="inline-block py-1 px-3 rounded-full bg-brand-800/50 border border-brand-500/30 text-brand-200 text-xs font-bold tracking-widest uppercase mb-4 backdrop-blur-sm">
-                    Soporte Técnico Especializado
+                <!-- Logo Centered -->
+                <div class="flex justify-center mb-8">
+                     <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-brand-500/50">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <span class="text-3xl font-black text-white tracking-tight">
+                            INTALNET
+                        </span>
+                    </div>
+                </div>
+
+                <span class="inline-block py-1 px-3 rounded-full bg-brand-800/50 border border-brand-500/30 text-brand-200 text-xs font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">
+                    Consulta de Estado
                 </span>
                 <h1 class="text-5xl md:text-7xl font-black text-white mb-6 leading-tight tracking-tight">
-                    Tu Servicio, <br/>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 via-white to-brand-300">Bajo Control.</span>
+                    Consulta tu <br/>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 via-white to-brand-300">Orden de Servicio</span>
                 </h1>
                 <p class="text-xl md:text-2xl text-brand-100 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
-                    Consulta el estado de tus órdenes en tiempo real y vive la experiencia de servicio Intalnet.
+                    Ingresa tus datos para verificar el estado de tu solicitud en tiempo real.
                 </p>
             </div>
 
