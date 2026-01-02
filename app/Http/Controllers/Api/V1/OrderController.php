@@ -176,8 +176,7 @@ class OrderController extends Controller
         // Validación de los datos de entrada
         $validatedData = $request->validate([
             'celular' => 'nullable|string|max:20',
-            'observaciones_origen' => 'nullable|string',
-            'observaciones_destino' => 'nullable|string',
+            'observaciones' => 'nullable|string',
         ]);
 
         $orden->update($validatedData);
