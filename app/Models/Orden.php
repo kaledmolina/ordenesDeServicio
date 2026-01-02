@@ -49,7 +49,10 @@ class Orden extends Model
         'mac_router',
         'mac_bridge',
         'mac_ont',
+        'mac_ont',
         'otros_equipos',
+        'firma_tecnico',
+        'firma_suscriptor',
     ];
 
     protected $casts = [
