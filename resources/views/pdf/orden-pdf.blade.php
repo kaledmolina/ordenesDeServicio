@@ -223,7 +223,7 @@
                     </td>
                     <td width="30%" class="text-center" style="vertical-align: bottom;">
                         @if($orden->firma_tecnico)
-                            <img src="{{ storage_path('app/public/' . $orden->firma_tecnico) }}" style="max-width: 150px; max-height: 60px; margin-bottom: 5px;">
+                            <img src="{{ public_path('storage/' . $orden->firma_tecnico) }}" style="max-width: 150px; max-height: 60px; margin-bottom: 5px;">
                             <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto;">FIRMA TÉCNICO</div>
                         @else
                             <div style="height: 60px;"></div>
@@ -232,7 +232,7 @@
                     </td>
                     <td width="30%" class="text-center" style="vertical-align: bottom;">
                         @if($orden->firma_suscriptor)
-                            <img src="{{ storage_path('app/public/' . $orden->firma_suscriptor) }}" style="max-width: 150px; max-height: 60px; margin-bottom: 5px;">
+                            <img src="{{ public_path('storage/' . $orden->firma_suscriptor) }}" style="max-width: 150px; max-height: 60px; margin-bottom: 5px;">
                             <div style="border-top: 1px solid #000; width: 80%; margin: 0 auto;">FIRMA SUSCRIPTOR</div>
                         @else
                             <div style="height: 60px;"></div>

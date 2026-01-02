@@ -439,7 +439,8 @@ class OrdenResource extends Resource
                         ->label('Descargar PDF')
                         ->icon('heroicon-o-document-arrow-down')
                         ->action(function (Orden $record) {
-                            $pdf = Pdf::loadView('pdf.orden-pdf', ['orden' => $record, 'is_blank' => false]);
+                            $pdf = Pdf::loadView('pdf.orden-pdf', ['orden' => $record, 'is_blank' => false])
+                                ->setOption(['isRemoteEnabled' => true, 'chroot' => public_path()]);
                             return response()->streamDownload(fn() => print($pdf->output()), 'orden-'.$record->numero_orden.'.pdf');
                         }),
                     Tables\Actions\DeleteAction::make(),
