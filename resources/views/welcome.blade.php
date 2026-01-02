@@ -263,18 +263,133 @@
 
 
 
-    <!-- Interaction Script -->
+    <!-- How it Works Section -->
+    <section class="relative py-24 px-4 overflow-hidden">
+        <div class="max-w-6xl mx-auto relative z-10">
+            <h2 class="text-3xl md:text-5xl font-black text-center text-slate-900 mb-20 tracking-tight" data-aos="fade-up">
+                Tu Servicio en <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent-500">3 Pasos Simples</span>
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <!-- Step 1 -->
+                <div class="group relative bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-slate-100">
+                    <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl rotate-3 group-hover:rotate-12 transition-transform shadow-lg flex items-center justify-center text-white font-black text-3xl z-10">
+                        1
+                    </div>
+                    <div class="mt-8 text-center">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4">Ingresa tus Datos</h3>
+                        <p class="text-slate-500 leading-relaxed">Usa tu número de identificación o el código único de la orden de servicio.</p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="group relative bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-slate-100 delay-100">
+                     <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl -rotate-3 group-hover:-rotate-12 transition-transform shadow-lg flex items-center justify-center text-white font-black text-3xl z-10">
+                        2
+                    </div>
+                    <div class="mt-8 text-center">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4">Verifica el Estado</h3>
+                        <p class="text-slate-500 leading-relaxed">Nuestro sistema te mostrará en tiempo real si tu técnico ya está en camino.</p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="group relative bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-slate-100 delay-200">
+                     <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl rotate-6 group-hover:rotate-0 transition-transform shadow-lg flex items-center justify-center text-white font-black text-3xl z-10">
+                        3
+                    </div>
+                    <div class="mt-8 text-center">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4">Servicio Completado</h3>
+                        <p class="text-slate-500 leading-relaxed">Confirma la finalización y califica la atención recibida en menos de 48h.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Canvas for Mouse Effect -->
+    <canvas id="interactionCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-60"></canvas>
+
     <script>
-        document.addEventListener('mousemove', function(e) {
+        // Particle System for "Minigame" effect
+        const canvas = document.getElementById('interactionCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        
+        // Resize canvas
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Particle Class
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 5 + 2;
+                this.speedX = Math.random() * 4 - 2;
+                this.speedY = Math.random() * 4 - 2;
+                this.color = `hsl(${Math.random() * 60 + 200}, 100%, 50%)`; // Blue/Cyan Hues
+                this.life = 100;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= 2;
+                this.size *= 0.95;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life / 100;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Mouse Interaction
+        let mouse = { x: null, y: null };
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            // Create particles on move
+            for(let i=0; i<3; i++) {
+                particles.push(new Particle(mouse.x, mouse.y));
+            }
+            
+            // Blobs parallax (existing)
             const moveX = (e.clientX * -0.05);
             const moveY = (e.clientY * -0.05);
-            
-            const blobs = document.querySelectorAll('.animate-blob');
-            blobs.forEach((blob, index) => {
+            document.querySelectorAll('.animate-blob').forEach((blob, index) => {
                 const speed = (index + 1) * 2;
-                blob.style.transform = `translate(${moveX / speed}px, ${moveY / speed}px) scale(${1 + (index * 0.1)})`;
+                blob.style.transform = `translate(${moveX / speed}px, ${moveY / speed}px)`;
             });
         });
+
+        document.addEventListener('click', (e) => {
+            // Click explosion
+            for(let i=0; i<20; i++) {
+                particles.push(new Particle(e.clientX, e.clientY));
+            }
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].life <= 0 || particles[i].size <= 0.5) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
     </script>
 </body>
 </html>
