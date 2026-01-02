@@ -11,7 +11,6 @@ class Orden extends Model
         'cliente_id',
         'direccion',
         'cedula',
-        'cedula',
         'precinto',
         'nombre_cliente',
         
@@ -48,7 +47,6 @@ class Orden extends Model
         'fecha_llegada',
         'mac_router',
         'mac_bridge',
-        'mac_ont',
         'mac_ont',
         'otros_equipos',
         'firma_tecnico',
