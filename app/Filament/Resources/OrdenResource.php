@@ -293,7 +293,11 @@ class OrdenResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('numero_orden')->label('Numero de orden')->searchable(),
+                TextColumn::make('numero_orden')
+                    ->label('Numero de orden')
+                    ->searchable()
+                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab(),
                 TextColumn::make('nombre_cliente')->label('Nombre del cliente')->searchable(),
                 TextColumn::make('numero_expediente')->label('Numero de expediente')->searchable(),
                 TextColumn::make('placa')->label('Placa')->searchable(),
