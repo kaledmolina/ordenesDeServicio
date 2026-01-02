@@ -438,7 +438,8 @@ class OrdenResource extends Resource
                         ->openUrlInNewTab()
                         ->extraAttributes(['target' => '_blank']),
 
-                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA && !Auth::user()->hasAnyRole(['administrador', 'operador'])),
                     Action::make('downloadPdf')
                         ->label('Descargar PDF')
                         ->icon('heroicon-o-document-arrow-down')
