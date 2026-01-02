@@ -300,14 +300,42 @@ class OrdenResource extends Resource
                     ->searchable()
                     ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab(),
-                TextColumn::make('nombre_cliente')->label('Cliente')->searchable(),
-                TextColumn::make('direccion')->label('Dirección')->searchable()->limit(30),
-                TextColumn::make('telefono')->label('Teléfono')->searchable(),
-                TextColumn::make('tipo_orden')->label('Tipo Orden')->searchable(),
-                TextColumn::make('technician.name')->label('Técnico')->searchable(),
-                TextColumn::make('fecha_trn')->label('Fecha')->date('d/m/Y')->sortable(),
+                TextColumn::make('nombre_cliente')
+                    ->label('Cliente')
+                    ->searchable()
+                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab(),
+                TextColumn::make('direccion')
+                    ->label('Dirección')
+                    ->searchable()
+                    ->limit(30)
+                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab(),
+                TextColumn::make('telefono')
+                    ->label('Teléfono')
+                    ->searchable()
+                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab(),
+                TextColumn::make('tipo_orden')
+                    ->label('Tipo Orden')
+                    ->searchable()
+                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab(),
+                TextColumn::make('technician.name')
+                    ->label('Técnico')
+                    ->searchable()
+                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab(),
+                TextColumn::make('fecha_trn')
+                    ->label('Fecha')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab(),
                 BadgeColumn::make('estado_orden')
                     ->label('Estado')
+                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab()
                     ->colors([
                         'gray' => Orden::ESTADO_PENDIENTE,
                         'warning' => Orden::ESTADO_ASIGNADA,
