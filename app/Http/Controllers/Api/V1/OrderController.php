@@ -82,6 +82,10 @@ class OrderController extends Controller
     /**
      * Permite al técnico "cerrar" una orden, cambiando su estado.
      */
+    /**
+     * Permite al técnico finalizar la orden (Finalizar Atención).
+     * Cambia el estado a 'ejecutada' y guarda firmas y detalles.
+     */
     public function closeOrder(Request $request, Orden $orden)
     {
         $user = $request->user();
@@ -90,15 +94,38 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        if ($orden->status !== 'en proceso') {
-            return response()->json(['message' => 'Esta orden no se puede cerrar en su estado actual.'], 422);
+        if ($orden->status !== 'en proceso' && $orden->status !== 'en_sitio') {
+             // Allow 'en_sitio' as well since web allows finishing from 'en_sitio'
+             if ($orden->status !== 'en_sitio' && $orden->status !== 'en proceso') {
+                return response()->json(['message' => 'Esta orden no se puede finalizar en su estado actual. Estado: ' . $orden->status], 422);
+             }
         }
+        
+        // Validación de datos requeridos para finalizar
+        $validated = $request->validate([
+            'firma_tecnico' => 'required', // String (base64 or url)
+            'firma_suscriptor' => 'required', // String (base64 or url)
+            'articulos' => 'nullable|array',
+            'mac_router' => 'nullable|string',
+            'mac_bridge' => 'nullable|string',
+            'mac_ont' => 'nullable|string',
+            'otros_equipos' => 'nullable|string',
+        ]);
 
-        $orden->status = 'cerrada';
-        $orden->save();
+        $orden->update([
+            'status' => 'ejecutada', // ESTADO_EJECUTADA
+            'fecha_fin_atencion' => now(),
+            'firma_tecnico' => $validated['firma_tecnico'],
+            'firma_suscriptor' => $validated['firma_suscriptor'],
+            'articulos' => $validated['articulos'] ?? $orden->articulos,
+            'mac_router' => $validated['mac_router'] ?? $orden->mac_router,
+            'mac_bridge' => $validated['mac_bridge'] ?? $orden->mac_bridge,
+            'mac_ont' => $validated['mac_ont'] ?? $orden->mac_ont,
+            'otros_equipos' => $validated['otros_equipos'] ?? $orden->otros_equipos,
+        ]);
 
         return response()->json([
-            'message' => 'Orden cerrada exitosamente.',
+            'message' => 'Orden finalizada exitosamente.',
             'order' => $orden
         ]);
     }
