@@ -58,7 +58,6 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        $hasActiveOrder = Orden::where('technician_id', $user->id)
         if ($orden->status !== 'asignada' && $orden->status !== 'abierta') {
             return response()->json(['message' => 'Esta orden ya no se puede procesar.'], 422);
         }
