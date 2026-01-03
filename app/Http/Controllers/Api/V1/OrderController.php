@@ -128,6 +128,8 @@ class OrderController extends Controller
         
         // Validación de datos requeridos para finalizar
         $validated = $request->validate([
+            'celular' => 'nullable|string|max:20',
+            'observaciones' => 'nullable|string',
             'firma_tecnico' => 'required', // String (base64 or url)
             'firma_suscriptor' => 'required', // String (base64 or url)
             'articulos' => 'nullable|array',
@@ -140,6 +142,8 @@ class OrderController extends Controller
         $orden->update([
             'status' => 'ejecutada', // ESTADO_EJECUTADA
             'fecha_fin_atencion' => now(),
+            'celular' => $validated['celular'] ?? $orden->celular,
+            'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
             'firma_tecnico' => $validated['firma_tecnico'],
             'firma_suscriptor' => $validated['firma_suscriptor'],
             'articulos' => $validated['articulos'] ?? $orden->articulos,
