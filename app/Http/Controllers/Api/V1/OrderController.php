@@ -90,7 +90,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        if ($orden->status !== 'en proceso') {
+        if ($orden->status !== 'en proceso' && $orden->status !== 'en_proceso') {
             return response()->json(['message' => 'Solo una orden en proceso puede pasar a en sitio.'], 422);
         }
 
@@ -119,9 +119,9 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        if ($orden->status !== 'en proceso' && $orden->status !== 'en_sitio') {
+        if ($orden->status !== 'en proceso' && $orden->status !== 'en_sitio' && $orden->status !== 'en_proceso') {
              // Allow 'en_sitio' as well since web allows finishing from 'en_sitio'
-             if ($orden->status !== 'en_sitio' && $orden->status !== 'en proceso') {
+             if ($orden->status !== 'en_sitio' && $orden->status !== 'en proceso' && $orden->status !== 'en_proceso') {
                 return response()->json(['message' => 'Esta orden no se puede finalizar en su estado actual. Estado: ' . $orden->status], 422);
              }
         }
