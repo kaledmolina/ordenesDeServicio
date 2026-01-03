@@ -59,14 +59,7 @@ class OrderController extends Controller
         }
 
         $hasActiveOrder = Orden::where('technician_id', $user->id)
-                                ->where('status', 'en proceso')
-                                ->exists();
-
-        if ($hasActiveOrder) {
-            return response()->json(['message' => 'Ya tienes una orden en proceso. Debes completarla antes de tomar otra.'], 422);
-        }
-
-        if ($orden->status !== 'asignada') {
+        if ($orden->status !== 'asignada' && $orden->status !== 'abierta') {
             return response()->json(['message' => 'Esta orden ya no se puede procesar.'], 422);
         }
 
@@ -170,7 +163,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
-        if ($orden->status !== 'asignada') {
+        if ($orden->status !== 'asignada' && $orden->status !== 'abierta') {
             return response()->json(['message' => 'Esta orden ya no se puede rechazar.'], 422);
         }
 
