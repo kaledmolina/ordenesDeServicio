@@ -73,6 +73,8 @@ class OrderController extends Controller
         $orden->status = 'en proceso';
         $orden->save();
 
+        return response()->json([
+            'message' => 'Orden aceptada correctamente',
             'order' => $orden
         ]);
     }
