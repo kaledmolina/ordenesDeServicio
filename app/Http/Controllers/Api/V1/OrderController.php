@@ -26,7 +26,7 @@ class OrderController extends Controller
 
         // Aplicamos el filtro de estado si viene en la petición
         if ($request->has('status') && $request->status !== 'todas') {
-            $query->where('status', $request->status);
+            $query->where('estado_orden', $request->status);
         }
 
         // Ordenamos por la más reciente y paginamos los resultados
