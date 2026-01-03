@@ -73,8 +73,31 @@ class OrderController extends Controller
         $orden->status = 'en proceso';
         $orden->save();
 
+            'order' => $orden
+        ]);
+    }
+
+    /**
+     * Permite al técnico reportar que está en el sitio.
+     */
+    public function reportOnSite(Request $request, Orden $orden)
+    {
+        $user = $request->user();
+
+        if ($orden->technician_id !== $user->id) {
+            return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
+        }
+
+        if ($orden->status !== 'en proceso') {
+            return response()->json(['message' => 'Solo una orden en proceso puede pasar a en sitio.'], 422);
+        }
+
+        $orden->status = 'en_sitio';
+        $orden->fecha_llegada = now(); // Registrar hora de llegada
+        $orden->save();
+
         return response()->json([
-            'message' => 'Orden aceptada correctamente.',
+            'message' => 'Reporte en sitio exitoso.',
             'order' => $orden
         ]);
     }

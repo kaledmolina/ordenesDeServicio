@@ -33,6 +33,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{orden:numero_orden}', [OrderController::class, 'show']);
     Route::post('/orders/{orden:numero_orden}/accept', [OrderController::class, 'acceptOrder']);
+    Route::post('/orders/{orden:numero_orden}/report-on-site', [OrderController::class, 'reportOnSite']);
     Route::post('/orders/{orden:numero_orden}/close', [OrderController::class, 'closeOrder']);
     Route::post('/orders/{orden:numero_orden}/reject', [OrderController::class, 'rejectOrder']);
     Route::post('/orders/{orden:numero_orden}/update-details', [OrderController::class, 'updateDetails']); 
