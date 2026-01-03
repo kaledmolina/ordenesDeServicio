@@ -70,7 +70,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'Esta orden ya no se puede procesar.'], 422);
         }
 
-        $orden->status = 'en proceso';
+        $orden->status = 'en_proceso';
         $orden->save();
 
         return response()->json([
