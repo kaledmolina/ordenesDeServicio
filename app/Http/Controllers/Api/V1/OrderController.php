@@ -266,7 +266,7 @@ class OrderController extends Controller
         ]);
 
         // Guarda la foto en el disco 'local' (privado) y obtiene la ruta
-        $path = $request->file('photo')->store('private/orden-fotos', 'local');
+        $path = $request->file('photo')->store('orden-fotos', 'local');
 
         // Crea el registro en la base de datos
         $orden->fotos()->create(['path' => $path]);
