@@ -13,11 +13,18 @@ use Illuminate\Support\Facades\Log;
 
 class ClientsImport implements ToModel, WithHeadingRow
 {
+    private $created = 0;
+    private $skipped = 0;
+    private $seenCedulas = [];
+    private $seenCodigos = [];
+
     /**
     * @param array $row
     *
     * @return \Illuminate\Database\Eloquent\Model|null
     */
+    public function model(array $row)
+    {
         // Validate Headers are present (basic check based on first row of data)
         // Note: WithHeadingRow handles matching, but if keys are missing from the row array, it means headers were not found.
         
@@ -39,8 +46,18 @@ class ClientsImport implements ToModel, WithHeadingRow
         // Check if required fields exist
         if (empty($cedula) && empty($codigo)) {
             Log::warning('Skipping row due to missing identifiers: ' . json_encode($row));
+            return null; // Don't count as skipped due to duplicate, just invalid data
+        }
+
+        // Check for duplicates within the file itself
+        if (($cedula && in_array($cedula, $this->seenCedulas)) || ($codigo && in_array($codigo, $this->seenCodigos))) {
+            $this->skipped++;
             return null;
         }
+
+        // Add to seen arrays
+        if ($cedula) $this->seenCedulas[] = $cedula;
+        if ($codigo) $this->seenCodigos[] = $codigo;
 
         // Try to find existing user by Cedula or Codigo
         $user = null;
@@ -49,6 +66,12 @@ class ClientsImport implements ToModel, WithHeadingRow
         }
         if (!$user && $codigo) {
             $user = User::where('codigo_contrato', $codigo)->first();
+        }
+
+        if ($user) {
+            // User exists in DB, skip and count
+            $this->skipped++;
+            return null;
         }
 
         $data = [
@@ -99,23 +122,28 @@ class ClientsImport implements ToModel, WithHeadingRow
         ];
 
         // Ensure email is not null if creating
-        if (!$user && empty($data['email'])) {
+        if (empty($data['email'])) {
             $data['email'] = ($cedula ?? $codigo) . '@intalnet.com';
         }
 
-        if ($user) {
-            if (empty($data['email'])) {
-                unset($data['email']);
-            }
-            $user->update($data);
-            return $user;
-        } else {
-            $data['password'] = Hash::make($cedula ?? '123456');
-            $data['created_at'] = now();
-            $user = User::create($data);
-            $user->assignRole('cliente');
-            return $user;
-        }
+        $data['password'] = Hash::make($cedula ?? '123456');
+        $data['created_at'] = now();
+        $user = User::create($data);
+        $user->assignRole('cliente');
+        
+        $this->created++;
+        
+        return $user;
+    }
+
+    public function getCreatedCount()
+    {
+        return $this->created;
+    }
+
+    public function getSkippedCount()
+    {
+        return $this->skipped;
     }
 
     private function parseDate($value)

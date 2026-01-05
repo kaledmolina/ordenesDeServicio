@@ -24,11 +24,15 @@ class ListClientes extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $filePath = \Illuminate\Support\Facades\Storage::disk('public')->path($data['archivo_excel']);
-                    \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ClientsImport, $filePath);
+                    $import = new \App\Imports\ClientsImport;
+                    \Maatwebsite\Excel\Facades\Excel::import($import, $filePath);
                     
+                    $created = $import->getCreatedCount();
+                    $skipped = $import->getSkippedCount();
+
                     \Filament\Notifications\Notification::make()
                         ->title('Importación completada')
-                        ->body('Los clientes han sido importados exitosamente.')
+                        ->body("Se omitieron {$skipped} clientes por que ya estan registrados y se guardaron {$created} nuevos")
                         ->success()
                         ->send();
                 }),
