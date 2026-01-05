@@ -62,14 +62,14 @@ class OrderController extends Controller
         }
 
         // Idempotencia: Si ya está en proceso, devolvemos éxito para evitar errores en reintentos
-        if ($orden->status === 'en_proceso') {
+        if (strtolower($orden->status) === 'en_proceso') {
             return response()->json([
                 'message' => 'Orden ya está en proceso.',
                 'order' => $orden
             ]);
         }
 
-        if ($orden->status !== 'asignada') {
+        if (strtolower($orden->status) !== 'asignada') {
             return response()->json(['message' => 'Esta orden ya no se puede procesar.'], 422);
         }
 
@@ -95,14 +95,14 @@ class OrderController extends Controller
         }
 
         // Idempotencia
-        if ($orden->status === 'en_sitio') {
+        if (strtolower($orden->status) === 'en_sitio') {
             return response()->json([
                 'message' => 'Orden ya está reportada en sitio.',
                 'order' => $orden
             ]);
         }
 
-        if ($orden->status !== 'en proceso' && $orden->status !== 'en_proceso') {
+        if (strtolower($orden->status) !== 'en proceso' && strtolower($orden->status) !== 'en_proceso') {
             return response()->json(['message' => 'Solo una orden en proceso puede pasar a en sitio.'], 422);
         }
 
@@ -129,7 +129,7 @@ class OrderController extends Controller
         }
 
         // Idempotencia
-        if ($orden->status === 'ejecutada') {
+        if (strtolower($orden->status) === 'ejecutada') {
              return response()->json([
                 'message' => 'Orden ya fue ejecutada.',
                 'order' => $orden
@@ -138,7 +138,7 @@ class OrderController extends Controller
 
         // Allow 'en_sitio', 'en proceso', 'en_proceso'
         $allowedStatuses = ['en_sitio', 'en proceso', 'en_proceso'];
-        if (!in_array($orden->status, $allowedStatuses)) {
+        if (!in_array(strtolower($orden->status), $allowedStatuses)) {
             return response()->json(['message' => 'Esta orden no se puede finalizar en su estado actual. Estado: ' . $orden->status], 422);
         }
         
@@ -186,7 +186,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
-        if ($orden->status !== 'asignada') {
+        if (strtolower($orden->status) !== 'asignada') {
             return response()->json(['message' => 'Esta orden ya no se puede rechazar.'], 422);
         }
 
