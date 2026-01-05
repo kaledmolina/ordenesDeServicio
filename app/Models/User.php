@@ -74,4 +74,9 @@ class User extends Authenticatable implements FilamentUser // <-- Implementar el
     {
         return $this->hasMany(FcmToken::class);
     }
+
+    public function ordenes()
+    {
+        return $this->hasMany(Orden::class, 'technician_id');
+    }
 }
