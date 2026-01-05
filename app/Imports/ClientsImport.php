@@ -29,22 +29,31 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
         // 1. Gather all potential identifiers from this chunk to query DB once
         $cedulasToSearch = [];
         $codigosToSearch = [];
+        $emailsToSearch = [];
 
         foreach ($rows as $row) {
             $cedula = $row['cedula'] ?? $row['cedula_de_ciudadania'] ?? null;
             $codigo = $row['codigo'] ?? $row['codigo_cliente'] ?? $row['codigo_de_contrato'] ?? null;
+            $email = $row['correo'] ?? null;
 
             if ($cedula) $cedulasToSearch[] = $cedula;
             if ($codigo) $codigosToSearch[] = $codigo;
+            if ($email) $emailsToSearch[] = $email;
         }
 
-        // 2. Fetch existing users in one query
+        // 2. Fetch existing users in one query (for skipping)
         $existingUsers = User::query()
             ->where(function($q) use ($cedulasToSearch, $codigosToSearch) {
                 if (!empty($cedulasToSearch)) $q->whereIn('cedula', $cedulasToSearch);
                 if (!empty($codigosToSearch)) $q->orWhereIn('codigo_contrato', $codigosToSearch);
             })
             ->get();
+            
+        // Fetch existing emails to prevent duplicate email error
+        $existingEmails = [];
+        if (!empty($emailsToSearch)) {
+            $existingEmails = User::whereIn('email', $emailsToSearch)->pluck('email', 'email')->toArray();
+        }
         
         // Map for faster lookup: 'cedula_XXX' => true, 'codigo_YYY' => true
         $existingMap = [];
@@ -52,13 +61,15 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
             if ($u->cedula) $existingMap['cedula_' . $u->cedula] = true;
             if ($u->codigo_contrato) $existingMap['codigo_' . $u->codigo_contrato] = true;
         }
+        
+        // Track emails seen in this chunk to prevent collisions within the file
+        $chunkSeenEmails = [];
 
         // 3. Process rows
         foreach ($rows as $row) {
              // Strict check for critical columns (only needed once effectively, but good for validation)
             if (!isset($row['cedula']) && !isset($row['codigo']) && 
                 !isset($row['cedula_de_ciudadania']) && !isset($row['codigo_cliente']) && !isset($row['codigo_de_contrato'])) {
-                 // Skip or throw? Ideally throw if it's a structural error, but effectively we just skip invalid lines here to be safe
                  continue; 
             }
 
@@ -66,7 +77,6 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
             $codigo = $row['codigo'] ?? $row['codigo_cliente'] ?? $row['codigo_de_contrato'] ?? null;
 
             if (empty($cedula) && empty($codigo)) {
-                // Invalid data row
                 continue;
             }
 
@@ -88,21 +98,47 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
                 continue;
             }
 
-            // Mark as seen immediately so next row in this chunk (or next chunks) knows
+            // Mark as seen
             if ($cedula) $this->seenCedulas[$cedula] = true;
             if ($codigo) $this->seenCodigos[$codigo] = true;
+            
+            // Handle Email Uniqueness
+            $email = $row['correo'] ?? null;
+            if (empty($email)) {
+                 $email = ($cedula ?? $codigo) . '@intalnet.com';
+            }
+            
+            // Check collision with DB or current chunk
+            if (isset($existingEmails[$email]) || isset($chunkSeenEmails[$email])) {
+                // Email collision! Append cedula to make unique (e.g. user@gmail.com -> user.12345@gmail.com)
+                // This preserves the domain but makes the local part unique.
+                $parts = explode('@', $email);
+                if (count($parts) == 2) {
+                    $uniqueSuffix = $cedula ?? $codigo ?? rand(1000,9999);
+                    $email = $parts[0] . '.' . $uniqueSuffix . '@' . $parts[1];
+                } else {
+                    // Fallback if format weird
+                     $email = ($cedula ?? $codigo) . '@intalnet.com';
+                }
+            }
+            
+            // Mark new email as seen
+            $chunkSeenEmails[$email] = true;
+            
+            // Override email in row data essentially
+            $row['correo'] = $email;
 
             // CREATE USER
-            $this->createUser($row, $cedula, $codigo);
+            $this->createUser($row, $cedula, $codigo, $email);
             $this->created++;
         }
     }
 
-    private function createUser($row, $cedula, $codigo)
+    private function createUser($row, $cedula, $codigo, $email)
     {
         $data = [
             'name' => $row['nombres_y_apellidos'] ?? $row['nombres'] ?? 'Sin Nombre',
-            'email' => $row['correo'] ?? null,
+            'email' => $email,
             'cedula' => $cedula,
             'codigo_contrato' => $codigo,
             'direccion' => $row['direccion'] ?? null,
@@ -147,10 +183,8 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
             'marca' => $row['marca'] ?? null,
         ];
 
-        // Ensure email is not null
-        if (empty($data['email'])) {
-            $data['email'] = ($cedula ?? $codigo) . '@intalnet.com';
-        }
+        // Email is passed as argument, already ensured not null and unique
+
 
         $data['password'] = Hash::make($cedula ?? '123456');
         $data['created_at'] = now();
