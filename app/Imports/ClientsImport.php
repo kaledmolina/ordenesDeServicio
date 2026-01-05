@@ -18,11 +18,20 @@ class ClientsImport implements ToModel, WithHeadingRow
     *
     * @return \Illuminate\Database\Eloquent\Model|null
     */
-    public function model(array $row)
-    {
-        // Debug: Log keys to see how Maatwebsite is parsing headers
-        // Log::info('Importing Row Keys: ' . json_encode(array_keys($row)));
+        // Validate Headers are present (basic check based on first row of data)
+        // Note: WithHeadingRow handles matching, but if keys are missing from the row array, it means headers were not found.
         
+        // Strict check for critical columns
+        if (!array_key_exists('cedula', $row) && !array_key_exists('codigo', $row)) {
+             // If neither of our expected keys exist, it's likely the headers are wrong.
+             // We can throw an exception to stop import and notify user.
+             // However, to be user-friendly, we might want to fail fast.
+             
+             // Check if this looks like a header mismatch globally (only checking first row effectively but model calls for each)
+             // We'll throw an exception that Filament can catch or users see.
+             throw new \Exception("Error en el formato del archivo: No se encontraron las columnas 'Cedula' o 'Codigo' en la primera fila. Verifique los títulos.");
+        }
+
         // Normalize keys if needed or check multiple variations
         $cedula = $row['cedula'] ?? $row['cedula_de_ciudadania'] ?? null;
         $codigo = $row['codigo'] ?? $row['codigo_cliente'] ?? $row['codigo_de_contrato'] ?? null;
