@@ -1,6 +1,4 @@
 <?php
-// Abre tu archivo de modelo app/Models/User.php
-// y reemplaza su contenido con este código.
 
 namespace App\Models;
 
@@ -9,19 +7,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
-use Filament\Models\Contracts\FilamentUser; // <-- Importar el contrato de Filament
-use Filament\Panel; // <-- Importar el Panel
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable implements FilamentUser // <-- Implementar el contrato
+class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -30,29 +22,62 @@ class User extends Authenticatable implements FilamentUser // <-- Implementar el
         'direccion',
         'is_active',
         'codigo_contrato',
+        
+        // Billing Fields
+        'estrato',
+        'zona',
+        'barrio',
+        'telefono_facturacion',
+        'otro_telefono',
+        'tipo_servicio',
+        'vendedor',
+        'tipo_operacion',
+        'suscripcion_tv',
+        'suscripcion_internet',
+        'fecha_ultimo_pago',
+        'estado_tv',
+        'estado_internet',
+        'saldo_tv',
+        'saldo_internet',
+        'saldo_otros',
+        'saldo_total',
+        'tarifa_tv',
+        'tarifa_internet',
+        'tarifa_total',
+        'plan_internet',
+        'velocidad',
+        'cortado_tv',
+        'retiro_tv',
+        'cortado_int',
+        'retiro_int',
+        'serial',
+        'mac',
+        'ip',
+        'marca',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            
+            'suscripcion_tv' => 'date',
+            'suscripcion_internet' => 'date',
+            'fecha_ultimo_pago' => 'date',
+            'saldo_tv' => 'decimal:2',
+            'saldo_internet' => 'decimal:2',
+            'saldo_otros' => 'decimal:2',
+            'saldo_total' => 'decimal:2',
+            'tarifa_tv' => 'decimal:2',
+            'tarifa_internet' => 'decimal:2',
+            'tarifa_total' => 'decimal:2',
         ];
     }
     
@@ -61,14 +86,11 @@ class User extends Authenticatable implements FilamentUser // <-- Implementar el
         return $this->fcm_token;
     }
 
-    // 👇 MÉTODO AÑADIDO: Controla el acceso al panel de Filament.
     public function canAccessPanel(Panel $panel): bool
     {
-        // Solo permite el acceso a usuarios con el rol de administrador u operador.
         return $this->hasRole(['administrador', 'operador', 'tecnico']) || 
            $this->email === 'kaledmoly@gmail.com';
     }
-
 
     public function fcmTokens()
     {
