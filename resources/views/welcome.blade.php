@@ -347,17 +347,31 @@
                                     </div>
                                     <input type="hidden" name="rating" id="ratingInput" required>
                                     
-                                    <!-- Improvements Checkboxes -->
-                                    <div class="space-y-2 text-left">
-                                        <label class="block text-sm font-bold text-slate-700">¿Qué podemos mejorar?</label>
-                                        <div class="grid grid-cols-2 gap-2">
-                                            @foreach(['Puntualidad', 'Amabilidad', 'Conocimiento', 'Limpieza', 'Presentación'] as $item)
-                                            <label class="flex items-center space-x-2 p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 cursor-pointer transition-colors">
-                                                <input type="checkbox" name="improvements[]" value="{{ $item }}" class="rounded text-brand-600 focus:ring-brand-500">
-                                                <span class="text-sm text-slate-600">{{ $item }}</span>
-                                            </label>
-                                            @endforeach
+                                    <!-- Detailed Questions (Yes/No) -->
+                                    <div class="space-y-4 text-left">
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">Evalúa al Técnico:</label>
+                                        
+                                        @foreach([
+                                            'arrived_on_time' => '¿Llegó a la hora acordada?',
+                                            'wears_uniform' => '¿Portaba su uniforme y carnet?',
+                                            'is_friendly' => '¿Fue amable y respetuoso?',
+                                            'problem_solved' => '¿Solucionó su requerimiento?',
+                                            'left_clean' => '¿Dejó limpia el área de trabajo?'
+                                        ] as $key => $label)
+                                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                            <span class="text-sm font-medium text-slate-700 w-2/3">{{ $label }}</span>
+                                            <div class="flex gap-2">
+                                                <input type="hidden" name="{{ $key }}" id="input_{{ $key }}" value="1">
+                                                
+                                                <button type="button" onclick="setBoolean('{{ $key }}', 1)" id="btn_{{ $key }}_yes" class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all shadow-sm">
+                                                    SÍ
+                                                </button>
+                                                <button type="button" onclick="setBoolean('{{ $key }}', 0)" id="btn_{{ $key }}_no" class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-slate-400 border border-slate-200 hover:bg-red-50 hover:text-red-500 transition-all">
+                                                    NO
+                                                </button>
+                                            </div>
                                         </div>
+                                        @endforeach
                                     </div>
 
                                     <!-- Comment -->
@@ -392,6 +406,27 @@
         function resetForm() {
              document.getElementById('feedbackForm').reset();
              setRating(0);
+             // Reset all booleans to Yes (Default behavior or neutral?)
+             // Let's reset visuals to default "Yes" selected as per DB default, or clear selection? 
+             // Better to clear selection or default to Yes. Since we default to true in DB, lets visual Yes.
+             ['arrived_on_time', 'wears_uniform', 'is_friendly', 'problem_solved', 'left_clean'].forEach(key => {
+                 setBoolean(key, 1);
+             });
+        }
+        
+        function setBoolean(key, value) {
+            document.getElementById('input_' + key).value = value;
+            
+            const btnYes = document.getElementById('btn_' + key + '_yes');
+            const btnNo = document.getElementById('btn_' + key + '_no');
+            
+            if(value == 1) {
+                btnYes.className = "px-3 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all shadow-sm transform scale-105";
+                btnNo.className = "px-3 py-1 rounded-lg text-xs font-bold bg-white text-slate-400 border border-slate-200 hover:bg-red-50 hover:text-red-500 transition-all opacity-60";
+            } else {
+                btnYes.className = "px-3 py-1 rounded-lg text-xs font-bold bg-white text-slate-400 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-500 transition-all opacity-60";
+                btnNo.className = "px-3 py-1 rounded-lg text-xs font-bold bg-red-100 text-red-700 border border-red-200 transition-all shadow-sm transform scale-105";
+            }
         }
 
         function setRating(value) {

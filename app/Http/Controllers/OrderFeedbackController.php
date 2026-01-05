@@ -13,7 +13,13 @@ class OrderFeedbackController extends Controller
         // 1. Validar inputs
         $validated = $request->validate([
             'rating' => 'required|integer|min:1|max:5',
-            'improvements' => 'nullable|array',
+            
+            'arrived_on_time' => 'required|boolean',
+            'is_friendly' => 'required|boolean',
+            'problem_solved' => 'required|boolean',
+            'wears_uniform' => 'required|boolean',
+            'left_clean' => 'required|boolean',
+
             'comment' => 'nullable|string|max:1000',
         ]);
 
@@ -37,7 +43,13 @@ class OrderFeedbackController extends Controller
         $orden->feedback()->create([
             'technician_id' => $orden->technician_id,
             'rating' => $validated['rating'],
-            'improvements' => $validated['improvements'] ?? [],
+            
+            'arrived_on_time' => $validated['arrived_on_time'],
+            'is_friendly' => $validated['is_friendly'],
+            'problem_solved' => $validated['problem_solved'],
+            'wears_uniform' => $validated['wears_uniform'],
+            'left_clean' => $validated['left_clean'],
+            
             'comment' => $validated['comment'],
         ]);
 

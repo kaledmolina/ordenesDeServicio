@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -31,12 +32,23 @@ class OrderFeedbackResource extends Resource
                 Forms\Components\Select::make('technician_id')
                     ->relationship('technician', 'name')
                     ->disabled(),
+                Forms\Components\TextInput::make('orden_id')
+                    ->formatStateUsing(fn ($record) => $record->orden->numero_orden)
+                    ->label('Orden')
+                    ->disabled(),
                 Forms\Components\TextInput::make('rating')
+                    ->label('Estrellas')
                     ->disabled(),
+                
+                Forms\Components\Toggle::make('arrived_on_time')->label('Puntualidad')->disabled(),
+                Forms\Components\Toggle::make('is_friendly')->label('Amabilidad')->disabled(),
+                Forms\Components\Toggle::make('problem_solved')->label('Solución')->disabled(),
+                Forms\Components\Toggle::make('wears_uniform')->label('Presentación')->disabled(),
+                Forms\Components\Toggle::make('left_clean')->label('Limpieza')->disabled(),
+                
                 Forms\Components\Textarea::make('comment')
-                    ->disabled(),
-                Forms\Components\KeyValue::make('improvements')
-                    ->disabled(),
+                    ->disabled()
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -47,7 +59,8 @@ class OrderFeedbackResource extends Resource
                 TextColumn::make('technician.name')
                     ->label('Técnico')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->weight('bold'),
                 
                 TextColumn::make('orden.numero_orden')
                     ->label('Orden')
@@ -57,21 +70,21 @@ class OrderFeedbackResource extends Resource
                     ->label('Calificación')
                     ->formatStateUsing(fn (string $state): string => str_repeat('⭐', $state))
                     ->sortable(),
-                
-                TextColumn::make('improvements')
-                    ->label('A Mejorar')
-                    ->badge()
-                    ->separator(',')
-                    ->color('danger'),
+
+                IconColumn::make('arrived_on_time')->label('Puntual')->boolean(),
+                IconColumn::make('is_friendly')->label('Amable')->boolean(),
+                IconColumn::make('problem_solved')->label('Solucionó')->boolean(),
+                IconColumn::make('wears_uniform')->label('Uniforme')->boolean(),
+                IconColumn::make('left_clean')->label('Limpio')->boolean(),
                 
                 TextColumn::make('comment')
                     ->label('Comentario')
-                    ->limit(50)
+                    ->limit(30)
                     ->tooltip(fn (TextColumn $column): ?string => $column->getState()),
                 
                 TextColumn::make('created_at')
                     ->label('Fecha')
-                    ->dateTime()
+                    ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
             ->filters([

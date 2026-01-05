@@ -15,13 +15,24 @@ class OrderFeedback extends Model
         'orden_id',
         'technician_id',
         'rating',
-        'improvements',
+        
+        // Detailed Metrics
+        'arrived_on_time',
+        'is_friendly',
+        'problem_solved',
+        'wears_uniform',
+        'left_clean',
+        
         'comment',
     ];
 
     protected $casts = [
-        'improvements' => 'array',
         'rating' => 'integer',
+        'arrived_on_time' => 'boolean',
+        'is_friendly' => 'boolean',
+        'problem_solved' => 'boolean',
+        'wears_uniform' => 'boolean',
+        'left_clean' => 'boolean',
     ];
 
     public function orden()
