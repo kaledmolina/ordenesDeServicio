@@ -475,7 +475,6 @@
                 alert('Ocurrió un error al enviar la calificación.');
             });
         }
-    </script>
 
         // Auto-scroll to results if they exist
         @if(isset($search))
