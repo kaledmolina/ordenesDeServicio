@@ -9,6 +9,8 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 
+use Illuminate\Support\Facades\Log;
+
 class ClientsImport implements ToModel, WithHeadingRow
 {
     /**
@@ -18,13 +20,18 @@ class ClientsImport implements ToModel, WithHeadingRow
     */
     public function model(array $row)
     {
+        // Debug: Log keys to see how Maatwebsite is parsing headers
+        // Log::info('Importing Row Keys: ' . json_encode(array_keys($row)));
+        
+        // Normalize keys if needed or check multiple variations
+        $cedula = $row['cedula'] ?? $row['cedula_de_ciudadania'] ?? null;
+        $codigo = $row['codigo'] ?? $row['codigo_cliente'] ?? $row['codigo_de_contrato'] ?? null;
+
         // Check if required fields exist
-        if (empty($row['cedula']) && empty($row['codigo'])) {
+        if (empty($cedula) && empty($codigo)) {
+            Log::warning('Skipping row due to missing identifiers: ' . json_encode($row));
             return null;
         }
-
-        $cedula = $row['cedula'] ?? null;
-        $codigo = $row['codigo'] ?? null;
 
         // Try to find existing user by Cedula or Codigo
         $user = null;
