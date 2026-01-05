@@ -55,37 +55,36 @@ class OrderController extends Controller
      */
     public function acceptOrder(Request $request, Orden $orden)
     {
-        $orden->refresh(); // Ensure strict latest state
+        $orden->refresh(); 
         $user = $request->user();
 
         if ($orden->technician_id !== $user->id) {
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        $status = trim(strtolower($orden->status ?? ''));
+        $estado = trim(strtolower($orden->estado_orden ?? ''));
 
         // Idempotencia
-        if ($status === 'en_proceso') {
+        if ($estado === 'en_proceso') {
             return response()->json([
                 'message' => 'Orden ya está en proceso.',
                 'order' => $orden
             ]);
         }
 
-        // Flujo estricto: asignada -> en_proceso
-        if ($status !== 'asignada') {
+        if ($estado !== 'asignada') {
             return response()->json([
-                'message' => "La orden no se puede tomar. Estado actual: '$status'. Se esperaba: 'asignada'."
+                'message' => "La orden no se puede tomar. Estado actual: '$estado'. Se esperaba: 'asignada'."
             ], 422);
         }
 
-        // Use Direct DB Update to avoid Model side-effects
+        // Use Direct DB Update
         \Illuminate\Support\Facades\DB::table('ordens')
             ->where('id', $orden->id)
             ->update([
-                'status' => 'en_proceso',
+                'estado_orden' => 'en_proceso',
                 'fecha_inicio_atencion' => now(),
-                'updated_at' => now(), // Manually update timestamp
+                'updated_at' => now(),
             ]);
         
         $orden->refresh();
@@ -105,27 +104,26 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        $status = trim(strtolower($orden->status ?? ''));
+        $estado = trim(strtolower($orden->estado_orden ?? ''));
 
         // Idempotencia
-        if ($status === 'en_sitio') {
+        if ($estado === 'en_sitio') {
             return response()->json([
                 'message' => 'Orden ya reportada en sitio.',
                 'order' => $orden
             ]);
         }
 
-        // Flujo estricto: en_proceso -> en_sitio
-        if ($status !== 'en_proceso') {
+        if ($estado !== 'en_proceso') {
              return response()->json([
-                'message' => "No se puede reportar en sitio. Estado actual: '$status'. Se esperaba: 'en_proceso'."
+                'message' => "No se puede reportar en sitio. Estado actual: '$estado'. Se esperaba: 'en_proceso'."
             ], 422);
         }
 
         \Illuminate\Support\Facades\DB::table('ordens')
             ->where('id', $orden->id)
             ->update([
-                'status' => 'en_sitio',
+                'estado_orden' => 'en_sitio',
                 'fecha_llegada' => now(),
                 'updated_at' => now(),
             ]);
@@ -147,20 +145,19 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        $status = trim(strtolower($orden->status ?? ''));
+        $estado = trim(strtolower($orden->estado_orden ?? ''));
 
         // Idempotencia
-        if ($status === 'ejecutada') {
+        if ($estado === 'ejecutada') {
              return response()->json([
                 'message' => 'Orden ya fue ejecutada.',
                 'order' => $orden
             ]);
         }
 
-        // Flujo estricto: en_sitio -> ejecutada
-        if ($status !== 'en_sitio') {
+        if ($estado !== 'en_sitio') {
             return response()->json([
-                'message' => "No se puede finalizar la orden. Estado actual: '$status'. Se esperaba: 'en_sitio'."
+                'message' => "No se puede finalizar la orden. Estado actual: '$estado'. Se esperaba: 'en_sitio'."
             ], 422);
         }
         
@@ -179,15 +176,13 @@ class OrderController extends Controller
         \Illuminate\Support\Facades\DB::table('ordens')
             ->where('id', $orden->id)
             ->update([
-                'status' => 'ejecutada',
+                'estado_orden' => 'ejecutada',
                 'fecha_fin_atencion' => now(),
+                // Keep other fields
                 'celular' => $validated['celular'] ?? $orden->celular,
                 'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
                 'firma_tecnico' => $validated['firma_tecnico'],
                 'firma_suscriptor' => $validated['firma_suscriptor'],
-                // Serialize arrays if necessary, though DB usually handles checking cast. 
-                // Since we use DB::table, we might need json_encode if mysql json type.
-                // Assuming `articulos` is JSON column.
                 'articulos' => isset($validated['articulos']) ? json_encode($validated['articulos']) : $orden->articulos, 
                 'mac_router' => $validated['mac_router'] ?? $orden->mac_router,
                 'mac_bridge' => $validated['mac_bridge'] ?? $orden->mac_bridge,
@@ -215,12 +210,12 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
-        if (strtolower($orden->status) !== 'asignada') {
+        if (strtolower($orden->estado_orden) !== 'asignada') {
             return response()->json(['message' => 'Esta orden ya no se puede rechazar.'], 422);
         }
 
         // Actualiza la orden
-        $orden->status = 'rechazada';
+        $orden->estado_orden = 'rechazada'; // Or use DB facade if preferred, but save() is fine here if no conflict
         $orden->technician_id = null;
         $orden->save();
 

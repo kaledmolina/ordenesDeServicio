@@ -37,7 +37,7 @@ class Orden extends Model
         'observaciones',
         'articulos', // JSON Repeater
         
-        'status', 
+        // 'status', REMOVED 
         
         // Tracking timestamps
         'fecha_asignacion',
