@@ -46,6 +46,47 @@ class ClienteResource extends Resource
     {
         return $form
             ->schema([
+            ->schema([
+                Section::make('Búsqueda Automática')
+                    ->schema([
+                        TextInput::make('search_term')
+                            ->label('Buscar Cliente (Cédula, Código o Nombre)')
+                            ->placeholder('Ingrese dato y use el botón de la derecha ->')
+                            ->suffixAction(
+                                Forms\Components\Actions\Action::make('buscar')
+                                    ->icon('heroicon-m-magnifying-glass')
+                                    ->action(function ($state, Forms\Set $set) {
+                                        if (blank($state)) {
+                                            return;
+                                        }
+                                        
+                                        $service = new \App\Services\ClientLookupService();
+                                        $data = $service->search($state);
+                                        
+                                        if ($data) {
+                                            foreach ($data as $key => $value) {
+                                                $set($key, $value);
+                                            }
+                                            
+                                            \Filament\Notifications\Notification::make()
+                                                ->title('Cliente encontrado')
+                                                ->body('Datos cargados exitosamente.')
+                                                ->success()
+                                                ->send();
+                                        } else {
+                                            \Filament\Notifications\Notification::make()
+                                                ->title('No encontrado')
+                                                ->body('No se encontró el cliente en la base de datos.')
+                                                ->warning()
+                                                ->send();
+                                        }
+                                    })
+                            )
+                            ->columnSpanFull()
+                            ->helperText('Busque en la base de datos local para autocompletar.'),
+                    ])
+                    ->collapsed(false),
+
                 Section::make('Información Básica')
                     ->schema([
                         TextInput::make('name')->label('Nombre Completo')->required(),
