@@ -9,6 +9,7 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Columns\ViewColumn;
 
 class FotoResource extends Resource
 {
@@ -55,6 +56,9 @@ class FotoResource extends Resource
                         'cerrada' => 'primary',
                         default => 'gray',
                     }),
+                ViewColumn::make('fotos_preview')
+                    ->view('filament.tables.columns.order-photos')
+                    ->label('Fotos'),
             ])
             ->filters([
                 Filter::make('sin_fotos')
