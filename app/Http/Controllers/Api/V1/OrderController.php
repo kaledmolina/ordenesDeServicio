@@ -310,4 +310,38 @@ class OrderController extends Controller
         // Devuelve el archivo con el tipo de contenido correcto (ej. image/jpeg)
         return Storage::disk('local')->response($ordenFoto->path);
     }
+
+    /**
+     * Devuelve el ranking de técnicos (diario y mensual).
+     */
+    public function getRankings(Request $request)
+    {
+        // Ranking Diario
+        $daily = User::whereHas('roles', fn ($q) => $q->where('name', 'tecnico'))
+            ->withCount(['ordenes as count' => function ($query) {
+                $query->where('estado_orden', 'ejecutada')
+                      ->whereDate('fecha_fin_atencion', today());
+            }])
+            ->orderByDesc('count')
+            ->take(10)
+            ->get()
+            ->map(fn($user) => ['name' => $user->name, 'count' => $user->count]);
+
+        // Ranking Mensual
+        $monthly = User::whereHas('roles', fn ($q) => $q->where('name', 'tecnico'))
+            ->withCount(['ordenes as count' => function ($query) {
+                $query->where('estado_orden', 'ejecutada')
+                      ->whereMonth('fecha_fin_atencion', now()->month)
+                      ->whereYear('fecha_fin_atencion', now()->year);
+            }])
+            ->orderByDesc('count')
+            ->take(10)
+            ->get()
+            ->map(fn($user) => ['name' => $user->name, 'count' => $user->count]);
+
+        return response()->json([
+            'daily' => $daily,
+            'monthly' => $monthly,
+        ]);
+    }
 }

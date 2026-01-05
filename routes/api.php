@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('/orders/{orden:numero_orden}/reject', [OrderController::class, 'rejectOrder']);
     Route::post('/orders/{orden:numero_orden}/update-details', [OrderController::class, 'updateDetails']); 
     Route::post('/orders/{orden:numero_orden}/upload-photo', [OrderController::class, 'uploadPhoto']);
+    Route::get('/rankings', [OrderController::class, 'getRankings']);
 
 
 
