@@ -49,12 +49,15 @@ class FotoResource extends Resource
                 TextColumn::make('numero_orden')->label('N° de Orden')->searchable(),
                 TextColumn::make('nombre_cliente')->label('Cliente')->searchable(),
                 TextColumn::make('fotos_count')->label('N° de Fotos')->sortable(),
-                TextColumn::make('status')->label('Estado')->badge()
+                TextColumn::make('estado_orden')->label('Estado')->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'abierta' => 'success',
-                        'programada' => 'info',
-                        'en proceso' => 'warning',
-                        'cerrada' => 'primary',
+                        'pendiente' => 'gray',
+                        'asignada' => 'info',
+                        'en_sitio' => 'warning',
+                        'en_proceso' => 'primary',
+                        'ejecutada' => 'success',
+                        'cerrada' => 'success',
+                        'anulada' => 'danger',
                         default => 'gray',
                     }),
                 ViewColumn::make('fotos_preview')
