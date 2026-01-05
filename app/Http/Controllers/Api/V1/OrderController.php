@@ -61,16 +61,21 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        // Idempotencia: Si ya está en proceso, devolvemos éxito para evitar errores en reintentos
-        if (strtolower($orden->status) === 'en_proceso') {
+        $status = trim(strtolower($orden->status ?? ''));
+
+        // Idempotencia
+        if ($status === 'en_proceso') {
             return response()->json([
                 'message' => 'Orden ya está en proceso.',
                 'order' => $orden
             ]);
         }
 
-        if (strtolower($orden->status) !== 'asignada') {
-            return response()->json(['message' => 'Esta orden ya no se puede procesar.'], 422);
+        // Flujo estricto: Solo asignada -> en_proceso
+        if ($status !== 'asignada') {
+            return response()->json([
+                'message' => "La orden no se puede tomar. Estado actual: '$status'. Se esperaba: 'asignada'."
+            ], 422);
         }
 
         $orden->status = 'en_proceso';
@@ -78,14 +83,11 @@ class OrderController extends Controller
         $orden->save();
 
         return response()->json([
-            'message' => 'Orden aceptada correctamente',
+            'message' => 'Orden tomada y en proceso.',
             'order' => $orden
         ]);
     }
 
-    /**
-     * Permite al técnico reportar que está en el sitio.
-     */
     public function reportOnSite(Request $request, Orden $orden)
     {
         $user = $request->user();
@@ -94,20 +96,25 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
+        $status = trim(strtolower($orden->status ?? ''));
+
         // Idempotencia
-        if (strtolower($orden->status) === 'en_sitio') {
+        if ($status === 'en_sitio') {
             return response()->json([
-                'message' => 'Orden ya está reportada en sitio.',
+                'message' => 'Orden ya reportada en sitio.',
                 'order' => $orden
             ]);
         }
 
-        if (strtolower($orden->status) !== 'en proceso' && strtolower($orden->status) !== 'en_proceso') {
-            return response()->json(['message' => 'Solo una orden en proceso puede pasar a en sitio.'], 422);
+        // Flujo estricto: Solo en_proceso -> en_sitio
+        if ($status !== 'en_proceso') {
+             return response()->json([
+                'message' => "No se puede reportar en sitio. Estado actual: '$status'. Se esperaba: 'en_proceso'."
+            ], 422);
         }
 
         $orden->status = 'en_sitio';
-        $orden->fecha_llegada = now(); // Registrar hora de llegada
+        $orden->fecha_llegada = now(); 
         $orden->save();
 
         return response()->json([
@@ -116,10 +123,6 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Permite al técnico finalizar la orden (Finalizar Atención).
-     * Cambia el estado a 'ejecutada' y guarda firmas y detalles.
-     */
     public function closeOrder(Request $request, Orden $orden)
     {
         $user = $request->user();
@@ -128,18 +131,21 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
+        $status = trim(strtolower($orden->status ?? ''));
+
         // Idempotencia
-        if (strtolower($orden->status) === 'ejecutada') {
+        if ($status === 'ejecutada') {
              return response()->json([
                 'message' => 'Orden ya fue ejecutada.',
                 'order' => $orden
             ]);
         }
 
-        // Allow 'en_sitio', 'en proceso', 'en_proceso'
-        $allowedStatuses = ['en_sitio', 'en proceso', 'en_proceso'];
-        if (!in_array(strtolower($orden->status), $allowedStatuses)) {
-            return response()->json(['message' => 'Esta orden no se puede finalizar en su estado actual. Estado: ' . $orden->status], 422);
+        // Flujo estricto: Solo en_sitio -> ejecutada
+        if ($status !== 'en_sitio') {
+            return response()->json([
+                'message' => "No se puede finalizar la orden. Estado actual: '$status'. Se esperaba: 'en_sitio'."
+            ], 422);
         }
         
         // Validación de datos requeridos para finalizar
