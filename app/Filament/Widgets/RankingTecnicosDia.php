@@ -14,6 +14,11 @@ class RankingTecnicosDia extends BaseWidget
     protected int | string | array $columnSpan = 'full';
     protected static ?int $sort = 1;
 
+    public static function canView(): bool
+    {
+        return auth()->user()->hasAnyRole(['administrador', 'operador', 'tecnico']);
+    }
+
     public function table(Table $table): Table
     {
         return $table
