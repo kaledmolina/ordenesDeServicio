@@ -46,14 +46,12 @@ class SeguimientoTecnicoResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                // Conteo de órdenes asignadas hoy
                 TextColumn::make('ordenes_hoy')
                     ->label('Asignadas Hoy')
                     ->state(fn (User $record) => $record->ordenes()
                         ->whereDate('fecha_asignacion', today())
                         ->count()),
 
-                // Conteo de órdenes ejecutadas hoy
                 TextColumn::make('ejecutadas_hoy')
                     ->label('Ejecutadas Hoy')
                     ->state(fn (User $record) => $record->ordenes()
@@ -62,83 +60,30 @@ class SeguimientoTecnicoResource extends Resource
                         ->count())
                     ->color('success')
                     ->weight('bold'),
-
-                // Promedio: Tiempo en Llegar (Asignación -> Llegada)
-                TextColumn::make('avg_llegada')
-                    ->label('T. Prom. Llegada')
-                    ->state(fn (User $record) => self::calculateAverageDuration($record, 'fecha_asignacion', 'fecha_llegada'))
-                    ->description('Asignación -> Sitio'),
-
-                // Promedio: Tiempo en Atender (Asignación -> Inicio o Llegada -> Inicio?)
-                // User asked: "cuanto tarde en atenderla" -> Usually Arrival -> Start Attention
-                TextColumn::make('avg_atencion')
-                    ->label('T. Prom. Inicio')
-                    ->state(fn (User $record) => self::calculateAverageDuration($record, 'fecha_llegada', 'fecha_inicio_atencion'))
-                    ->description('Sitio -> Inicio'),
-
-                // Promedio: Tiempo en Terminar (Inicio -> Fin)
-                TextColumn::make('avg_ejecucion')
-                    ->label('T. Prom. Ejecución')
-                    ->state(fn (User $record) => self::calculateAverageDuration($record, 'fecha_inicio_atencion', 'fecha_fin_atencion'))
-                    ->description('Inicio -> Fin'),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                // Action to view detailed orders if needed (could rely on relation manager or filter link)
-                Tables\Actions\Action::make('ver_ordenes')
-                    ->label('Ver Órdenes')
-                    ->icon('heroicon-o-eye')
-                    ->url(fn (User $record) => \App\Filament\Resources\OrdenResource::getUrl('index', [
-                        'tableFilters' => [
-                            'technician' => ['value' => $record->id], // Assuming filter exists or simply redirect
-                        ]
-                    ]))
+                Tables\Actions\EditAction::make()
+                    ->label('Ver Tiempos')
+                    ->icon('heroicon-o-clock'),
             ])
             ->bulkActions([]);
     }
     
-    // Helper to calculate average duration in human readable format
-    protected static function calculateAverageDuration(User $record, string $startCol, string $endCol): string
+    public static function getRelations(): array
     {
-        $orders = $record->ordenes()
-            ->whereNotNull($startCol)
-            ->whereNotNull($endCol)
-            ->get();
-
-        if ($orders->isEmpty()) {
-            return '-';
-        }
-
-        $totalMinutes = 0;
-        $count = 0;
-
-        foreach ($orders as $order) {
-            $start = $order->$startCol;
-            $end = $order->$endCol;
-            
-            // Ensure they are Carbon instances (should be cast in Model)
-            if ($start && $end) {
-                $totalMinutes += $start->diffInMinutes($end);
-                $count++;
-            }
-        }
-
-        if ($count === 0) return '-';
-
-        $avgMinutes = $totalMinutes / $count;
-        
-        $hours = floor($avgMinutes / 60);
-        $minutes = round($avgMinutes % 60);
-
-        return "{$hours}h {$minutes}m";
+        return [
+            RelationManagers\OrdenesRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListSeguimientoTecnicos::route('/'),
+            'edit' => Pages\EditSeguimientoTecnico::route('/{record}/edit'),
         ];
     }
 }
