@@ -152,7 +152,7 @@ class OrdenResource extends Resource
                                 Orden::ESTADO_ANULADA => 'Anulada',
                             ])
                             ->default(Orden::ESTADO_PENDIENTE)
-                            ->disabled()
+                            ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                             ->dehydrated(),
                     ])->columns(4),
 
