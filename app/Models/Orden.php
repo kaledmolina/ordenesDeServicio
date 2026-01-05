@@ -96,6 +96,11 @@ class Orden extends Model
         return $this->hasMany(OrdenFoto::class);
     }
 
+    public function feedback()
+    {
+        return $this->hasOne(OrderFeedback::class);
+    }
+
     public function getRouteKeyName()
     {
         return 'numero_orden';

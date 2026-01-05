@@ -6,6 +6,9 @@ use App\Http\Controllers\PdfController;
 
 
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\OrderFeedbackController;
+
+Route::post('/orden/{orden}/feedback', [OrderFeedbackController::class, 'store'])->name('orden.feedback.store');
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
 

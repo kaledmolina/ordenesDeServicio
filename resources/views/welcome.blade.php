@@ -249,6 +249,14 @@
                                     <span class="{{ $progress >= 95 ? 'text-brand-600' : '' }}">Finalizada</span>
                                 </div>
                             </div>
+                            
+                            @if($orden->estado_orden === 'ejecutada' && !$orden->feedback)
+                            <div class="mt-6 flex justify-center">
+                                <button onclick="openFeedbackModal('{{ $orden->numero_orden }}')" class="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white px-6 py-3 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 flex items-center gap-2">
+                                    <span>⭐</span> Calificar Servicio
+                                </button>
+                            </div>
+                            @endif
                         </div>
                     </div>
                     @endforeach
@@ -315,7 +323,125 @@
     <!-- Canvas for Mouse Effect -->
     <canvas id="interactionCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-60"></canvas>
 
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-100">
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                                <h3 class="text-2xl font-black leading-6 text-slate-900 mb-2" id="modal-title">Califica tu Experiencia</h3>
+                                <p class="text-sm text-slate-500 mb-6">Ayúdanos a mejorar calificando el servicio recibido.</p>
+                                
+                                <form id="feedbackForm" class="space-y-6">
+                                    @csrf
+                                    <input type="hidden" id="feedbackOrdenId" name="orden_id">
+                                    
+                                    <!-- Star Rating -->
+                                    <div class="flex justify-center gap-2 mb-4">
+                                        @for($i = 1; $i <= 5; $i++)
+                                        <button type="button" onclick="setRating({{ $i }})" class="star-btn text-4xl text-slate-200 transition-colors hover:scale-110 focus:outline-none" data-value="{{ $i }}">★</button>
+                                        @endfor
+                                    </div>
+                                    <input type="hidden" name="rating" id="ratingInput" required>
+                                    
+                                    <!-- Improvements Checkboxes -->
+                                    <div class="space-y-2 text-left">
+                                        <label class="block text-sm font-bold text-slate-700">¿Qué podemos mejorar?</label>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            @foreach(['Puntualidad', 'Amabilidad', 'Conocimiento', 'Limpieza', 'Presentación'] as $item)
+                                            <label class="flex items-center space-x-2 p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-100 cursor-pointer transition-colors">
+                                                <input type="checkbox" name="improvements[]" value="{{ $item }}" class="rounded text-brand-600 focus:ring-brand-500">
+                                                <span class="text-sm text-slate-600">{{ $item }}</span>
+                                            </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <!-- Comment -->
+                                    <div class="text-left">
+                                        <label class="block text-sm font-bold text-slate-700 mb-2">Comentario (Opcional)</label>
+                                        <textarea name="comment" rows="3" class="w-full rounded-xl border-slate-200 shadow-sm focus:border-brand-500 focus:ring-brand-500 placeholder-slate-400" placeholder="Cuéntanos más detalles..."></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-2">
+                        <button type="button" onclick="submitFeedback()" class="inline-flex w-full justify-center rounded-xl bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 sm:ml-3 sm:w-auto transition-colors">Enviar Calificación</button>
+                        <button type="button" onclick="closeFeedbackModal()" class="mt-3 inline-flex w-full justify-center rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function openFeedbackModal(ordenId) {
+            document.getElementById('feedbackModal').classList.remove('hidden');
+            document.getElementById('feedbackOrdenId').value = ordenId;
+            resetForm();
+        }
+
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.add('hidden');
+        }
+
+        function resetForm() {
+             document.getElementById('feedbackForm').reset();
+             setRating(0);
+        }
+
+        function setRating(value) {
+            document.getElementById('ratingInput').value = value;
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                if (parseInt(btn.dataset.value) <= value) {
+                    btn.classList.remove('text-slate-200');
+                    btn.classList.add('text-yellow-400');
+                } else {
+                    btn.classList.add('text-slate-200');
+                    btn.classList.remove('text-yellow-400');
+                }
+            });
+        }
+
+        function submitFeedback() {
+            const form = document.getElementById('feedbackForm');
+            const ordenId = document.getElementById('feedbackOrdenId').value;
+            const formData = new FormData(form);
+            
+            if(!formData.get('rating') || formData.get('rating') == 0) {
+                alert('Por favor selecciona una calificación de estrellas.');
+                return;
+            }
+
+            fetch(`/orden/${ordenId}/feedback`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    alert(data.message);
+                    closeFeedbackModal();
+                    window.location.reload(); // Reload to update button state
+                } else {
+                    alert(data.message || 'Error al enviar feedback');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al enviar la calificación.');
+            });
+        }
+    </script>
+
         // Auto-scroll to results if they exist
         @if(isset($search))
         document.addEventListener("DOMContentLoaded", function() {

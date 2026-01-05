@@ -79,4 +79,9 @@ class User extends Authenticatable implements FilamentUser // <-- Implementar el
     {
         return $this->hasMany(Orden::class, 'technician_id');
     }
+
+    public function feedbacks()
+    {
+        return $this->hasMany(OrderFeedback::class, 'technician_id');
+    }
 }
