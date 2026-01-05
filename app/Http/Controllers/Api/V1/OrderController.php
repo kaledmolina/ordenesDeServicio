@@ -50,6 +50,9 @@ class OrderController extends Controller
     /**
      * Permite al técnico "tomar" una orden, cambiando su estado.
      */
+    /**
+     * Permite al técnico "tomar" una orden, cambiando su estado.
+     */
     public function acceptOrder(Request $request, Orden $orden)
     {
         $user = $request->user();
@@ -58,11 +61,20 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        if ($orden->status !== 'asignada' && $orden->status !== 'abierta') {
+        // Idempotencia: Si ya está en proceso, devolvemos éxito para evitar errores en reintentos
+        if ($orden->status === 'en_proceso') {
+            return response()->json([
+                'message' => 'Orden ya está en proceso.',
+                'order' => $orden
+            ]);
+        }
+
+        if ($orden->status !== 'asignada') {
             return response()->json(['message' => 'Esta orden ya no se puede procesar.'], 422);
         }
 
         $orden->status = 'en_proceso';
+        $orden->fecha_inicio_atencion = now();
         $orden->save();
 
         return response()->json([
@@ -82,6 +94,14 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
+        // Idempotencia
+        if ($orden->status === 'en_sitio') {
+            return response()->json([
+                'message' => 'Orden ya está reportada en sitio.',
+                'order' => $orden
+            ]);
+        }
+
         if ($orden->status !== 'en proceso' && $orden->status !== 'en_proceso') {
             return response()->json(['message' => 'Solo una orden en proceso puede pasar a en sitio.'], 422);
         }
@@ -97,9 +117,6 @@ class OrderController extends Controller
     }
 
     /**
-     * Permite al técnico "cerrar" una orden, cambiando su estado.
-     */
-    /**
      * Permite al técnico finalizar la orden (Finalizar Atención).
      * Cambia el estado a 'ejecutada' y guarda firmas y detalles.
      */
@@ -111,11 +128,18 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado para modificar esta orden.'], 403);
         }
 
-        if ($orden->status !== 'en proceso' && $orden->status !== 'en_sitio' && $orden->status !== 'en_proceso') {
-             // Allow 'en_sitio' as well since web allows finishing from 'en_sitio'
-             if ($orden->status !== 'en_sitio' && $orden->status !== 'en proceso' && $orden->status !== 'en_proceso') {
-                return response()->json(['message' => 'Esta orden no se puede finalizar en su estado actual. Estado: ' . $orden->status], 422);
-             }
+        // Idempotencia
+        if ($orden->status === 'ejecutada') {
+             return response()->json([
+                'message' => 'Orden ya fue ejecutada.',
+                'order' => $orden
+            ]);
+        }
+
+        // Allow 'en_sitio', 'en proceso', 'en_proceso'
+        $allowedStatuses = ['en_sitio', 'en proceso', 'en_proceso'];
+        if (!in_array($orden->status, $allowedStatuses)) {
+            return response()->json(['message' => 'Esta orden no se puede finalizar en su estado actual. Estado: ' . $orden->status], 422);
         }
         
         // Validación de datos requeridos para finalizar
@@ -162,7 +186,7 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
-        if ($orden->status !== 'asignada' && $orden->status !== 'abierta') {
+        if ($orden->status !== 'asignada') {
             return response()->json(['message' => 'Esta orden ya no se puede rechazar.'], 422);
         }
 
