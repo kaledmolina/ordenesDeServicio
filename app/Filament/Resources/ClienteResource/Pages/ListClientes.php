@@ -23,6 +23,7 @@ class ListClientes extends ListRecords
                         ->required(),
                 ])
                 ->action(function (array $data) {
+                    set_time_limit(600); // 10 minutes for large files
                     $filePath = \Illuminate\Support\Facades\Storage::disk('public')->path($data['archivo_excel']);
                     $import = new \App\Imports\ClientsImport;
                     \Maatwebsite\Excel\Facades\Excel::import($import, $filePath);

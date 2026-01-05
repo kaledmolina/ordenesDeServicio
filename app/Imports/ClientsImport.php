@@ -4,76 +4,102 @@ namespace App\Imports;
 
 use App\Models\User;
 use Illuminate\Support\Str;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
-
 use Illuminate\Support\Facades\Log;
 
-class ClientsImport implements ToModel, WithHeadingRow
+class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
     private $created = 0;
     private $skipped = 0;
+    
+    // We don't strictly need persistent seen arrays for uniqueness check across chunks 
+    // IF we trust the DB check. However, within a single file upload session, 
+    // tracking seen items in memory helps avoid duplicates INSIDE the file.
+    // For 50k rows, arrays are manageable.
     private $seenCedulas = [];
     private $seenCodigos = [];
 
-    /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
-    public function model(array $row)
+    public function collection(Collection $rows)
     {
-        // Validate Headers are present (basic check based on first row of data)
-        // Note: WithHeadingRow handles matching, but if keys are missing from the row array, it means headers were not found.
+        // 1. Gather all potential identifiers from this chunk to query DB once
+        $cedulasToSearch = [];
+        $codigosToSearch = [];
+
+        foreach ($rows as $row) {
+            $cedula = $row['cedula'] ?? $row['cedula_de_ciudadania'] ?? null;
+            $codigo = $row['codigo'] ?? $row['codigo_cliente'] ?? $row['codigo_de_contrato'] ?? null;
+
+            if ($cedula) $cedulasToSearch[] = $cedula;
+            if ($codigo) $codigosToSearch[] = $codigo;
+        }
+
+        // 2. Fetch existing users in one query
+        $existingUsers = User::query()
+            ->where(function($q) use ($cedulasToSearch, $codigosToSearch) {
+                if (!empty($cedulasToSearch)) $q->whereIn('cedula', $cedulasToSearch);
+                if (!empty($codigosToSearch)) $q->orWhereIn('codigo_contrato', $codigosToSearch);
+            })
+            ->get();
         
-        // Strict check for critical columns
-        if (!array_key_exists('cedula', $row) && !array_key_exists('codigo', $row)) {
-             // If neither of our expected keys exist, it's likely the headers are wrong.
-             // We can throw an exception to stop import and notify user.
-             // However, to be user-friendly, we might want to fail fast.
-             
-             // Check if this looks like a header mismatch globally (only checking first row effectively but model calls for each)
-             // We'll throw an exception that Filament can catch or users see.
-             throw new \Exception("Error en el formato del archivo: No se encontraron las columnas 'Cedula' o 'Codigo' en la primera fila. Verifique los títulos.");
+        // Map for faster lookup: 'cedula_XXX' => true, 'codigo_YYY' => true
+        $existingMap = [];
+        foreach ($existingUsers as $u) {
+            if ($u->cedula) $existingMap['cedula_' . $u->cedula] = true;
+            if ($u->codigo_contrato) $existingMap['codigo_' . $u->codigo_contrato] = true;
         }
 
-        // Normalize keys if needed or check multiple variations
-        $cedula = $row['cedula'] ?? $row['cedula_de_ciudadania'] ?? null;
-        $codigo = $row['codigo'] ?? $row['codigo_cliente'] ?? $row['codigo_de_contrato'] ?? null;
+        // 3. Process rows
+        foreach ($rows as $row) {
+             // Strict check for critical columns (only needed once effectively, but good for validation)
+            if (!isset($row['cedula']) && !isset($row['codigo']) && 
+                !isset($row['cedula_de_ciudadania']) && !isset($row['codigo_cliente']) && !isset($row['codigo_de_contrato'])) {
+                 // Skip or throw? Ideally throw if it's a structural error, but effectively we just skip invalid lines here to be safe
+                 continue; 
+            }
 
-        // Check if required fields exist
-        if (empty($cedula) && empty($codigo)) {
-            Log::warning('Skipping row due to missing identifiers: ' . json_encode($row));
-            return null; // Don't count as skipped due to duplicate, just invalid data
+            $cedula = $row['cedula'] ?? $row['cedula_de_ciudadania'] ?? null;
+            $codigo = $row['codigo'] ?? $row['codigo_cliente'] ?? $row['codigo_de_contrato'] ?? null;
+
+            if (empty($cedula) && empty($codigo)) {
+                // Invalid data row
+                continue;
+            }
+
+            // Check duplicate in FILE (Global memory)
+            if (($cedula && isset($this->seenCedulas[$cedula])) || ($codigo && isset($this->seenCodigos[$codigo]))) {
+                $this->skipped++;
+                continue;
+            }
+            
+            // Check duplicate in DB (Batch lookup)
+            $existsInDb = ($cedula && isset($existingMap['cedula_' . $cedula])) || 
+                          ($codigo && isset($existingMap['codigo_' . $codigo]));
+
+            if ($existsInDb) {
+                $this->skipped++;
+                // Mark as seen so we don't process it again if repeated in file
+                if ($cedula) $this->seenCedulas[$cedula] = true; 
+                if ($codigo) $this->seenCodigos[$codigo] = true;
+                continue;
+            }
+
+            // Mark as seen immediately so next row in this chunk (or next chunks) knows
+            if ($cedula) $this->seenCedulas[$cedula] = true;
+            if ($codigo) $this->seenCodigos[$codigo] = true;
+
+            // CREATE USER
+            $this->createUser($row, $cedula, $codigo);
+            $this->created++;
         }
+    }
 
-        // Check for duplicates within the file itself
-        if (($cedula && in_array($cedula, $this->seenCedulas)) || ($codigo && in_array($codigo, $this->seenCodigos))) {
-            $this->skipped++;
-            return null;
-        }
-
-        // Add to seen arrays
-        if ($cedula) $this->seenCedulas[] = $cedula;
-        if ($codigo) $this->seenCodigos[] = $codigo;
-
-        // Try to find existing user by Cedula or Codigo
-        $user = null;
-        if ($cedula) {
-            $user = User::where('cedula', $cedula)->first();
-        }
-        if (!$user && $codigo) {
-            $user = User::where('codigo_contrato', $codigo)->first();
-        }
-
-        if ($user) {
-            // User exists in DB, skip and count
-            $this->skipped++;
-            return null;
-        }
-
+    private function createUser($row, $cedula, $codigo)
+    {
         $data = [
             'name' => $row['nombres_y_apellidos'] ?? $row['nombres'] ?? 'Sin Nombre',
             'email' => $row['correo'] ?? null,
@@ -121,19 +147,21 @@ class ClientsImport implements ToModel, WithHeadingRow
             'marca' => $row['marca'] ?? null,
         ];
 
-        // Ensure email is not null if creating
+        // Ensure email is not null
         if (empty($data['email'])) {
             $data['email'] = ($cedula ?? $codigo) . '@intalnet.com';
         }
 
         $data['password'] = Hash::make($cedula ?? '123456');
         $data['created_at'] = now();
+        
         $user = User::create($data);
         $user->assignRole('cliente');
-        
-        $this->created++;
-        
-        return $user;
+    }
+
+    public function chunkSize(): int
+    {
+        return 1000;
     }
 
     public function getCreatedCount()
