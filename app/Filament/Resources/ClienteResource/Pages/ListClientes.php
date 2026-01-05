@@ -23,8 +23,8 @@ class ListClientes extends ListRecords
                         ->required(),
                 ])
                 ->action(function (array $data) {
-                    $file = public_path('storage/' . $data['archivo_excel']);
-                    \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ClientsImport, $file);
+                    $filePath = \Illuminate\Support\Facades\Storage::disk('public')->path($data['archivo_excel']);
+                    \Maatwebsite\Excel\Facades\Excel::import(new \App\Imports\ClientsImport, $filePath);
                     
                     \Filament\Notifications\Notification::make()
                         ->title('Importación completada')
