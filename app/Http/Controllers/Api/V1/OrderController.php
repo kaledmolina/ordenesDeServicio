@@ -179,7 +179,7 @@ class OrderController extends Controller
                 'estado_orden' => 'ejecutada',
                 'fecha_fin_atencion' => now(),
                 // Keep other fields
-                'celular' => $validated['celular'] ?? $orden->celular,
+                'telefono' => $validated['celular'] ?? $orden->telefono,
                 'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
                 'firma_tecnico' => $validated['firma_tecnico'],
                 'firma_suscriptor' => $validated['firma_suscriptor'],
