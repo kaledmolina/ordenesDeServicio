@@ -39,7 +39,8 @@ class FotoResource extends Resource
         return $table
             ->query(function () {
                 $query = Orden::query()->withCount('fotos');
-                if (auth()->user()->hasRole('tecnico')) {
+                // Solo filtrar por técnico si NO es admin ni operador
+                if (!auth()->user()->hasAnyRole(['administrador', 'operador'])) {
                     $query->where('technician_id', auth()->id());
                 }
                 return $query;
