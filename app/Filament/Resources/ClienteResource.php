@@ -46,7 +46,7 @@ class ClienteResource extends Resource
     {
         return $form
             ->schema([
-            ->schema([
+
                 Section::make('Búsqueda Automática')
                     ->schema([
                         TextInput::make('search_term')
