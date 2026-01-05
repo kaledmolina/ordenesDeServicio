@@ -55,6 +55,7 @@ class OrderController extends Controller
      */
     public function acceptOrder(Request $request, Orden $orden)
     {
+        $orden->refresh(); // Ensure strict latest state
         $user = $request->user();
 
         if ($orden->technician_id !== $user->id) {
@@ -71,16 +72,23 @@ class OrderController extends Controller
             ]);
         }
 
-        // Flujo estricto: Solo asignada -> en_proceso
+        // Flujo estricto: asignada -> en_proceso
         if ($status !== 'asignada') {
             return response()->json([
                 'message' => "La orden no se puede tomar. Estado actual: '$status'. Se esperaba: 'asignada'."
             ], 422);
         }
 
-        $orden->status = 'en_proceso';
-        $orden->fecha_inicio_atencion = now();
-        $orden->save();
+        // Use Direct DB Update to avoid Model side-effects
+        \Illuminate\Support\Facades\DB::table('ordens')
+            ->where('id', $orden->id)
+            ->update([
+                'status' => 'en_proceso',
+                'fecha_inicio_atencion' => now(),
+                'updated_at' => now(), // Manually update timestamp
+            ]);
+        
+        $orden->refresh();
 
         return response()->json([
             'message' => 'Orden tomada y en proceso.',
@@ -90,6 +98,7 @@ class OrderController extends Controller
 
     public function reportOnSite(Request $request, Orden $orden)
     {
+        $orden->refresh();
         $user = $request->user();
 
         if ($orden->technician_id !== $user->id) {
@@ -106,16 +115,22 @@ class OrderController extends Controller
             ]);
         }
 
-        // Flujo estricto: Solo en_proceso -> en_sitio
+        // Flujo estricto: en_proceso -> en_sitio
         if ($status !== 'en_proceso') {
              return response()->json([
                 'message' => "No se puede reportar en sitio. Estado actual: '$status'. Se esperaba: 'en_proceso'."
             ], 422);
         }
 
-        $orden->status = 'en_sitio';
-        $orden->fecha_llegada = now(); 
-        $orden->save();
+        \Illuminate\Support\Facades\DB::table('ordens')
+            ->where('id', $orden->id)
+            ->update([
+                'status' => 'en_sitio',
+                'fecha_llegada' => now(),
+                'updated_at' => now(),
+            ]);
+
+        $orden->refresh();
 
         return response()->json([
             'message' => 'Reporte en sitio exitoso.',
@@ -125,6 +140,7 @@ class OrderController extends Controller
 
     public function closeOrder(Request $request, Orden $orden)
     {
+        $orden->refresh();
         $user = $request->user();
 
         if ($orden->technician_id !== $user->id) {
@@ -141,19 +157,18 @@ class OrderController extends Controller
             ]);
         }
 
-        // Flujo estricto: Solo en_sitio -> ejecutada
+        // Flujo estricto: en_sitio -> ejecutada
         if ($status !== 'en_sitio') {
             return response()->json([
                 'message' => "No se puede finalizar la orden. Estado actual: '$status'. Se esperaba: 'en_sitio'."
             ], 422);
         }
         
-        // Validación de datos requeridos para finalizar
         $validated = $request->validate([
             'celular' => 'nullable|string|max:20',
             'observaciones' => 'nullable|string',
-            'firma_tecnico' => 'required', // String (base64 or url)
-            'firma_suscriptor' => 'required', // String (base64 or url)
+            'firma_tecnico' => 'required',
+            'firma_suscriptor' => 'required',
             'articulos' => 'nullable|array',
             'mac_router' => 'nullable|string',
             'mac_bridge' => 'nullable|string',
@@ -161,19 +176,27 @@ class OrderController extends Controller
             'otros_equipos' => 'nullable|string',
         ]);
 
-        $orden->update([
-            'status' => 'ejecutada', // ESTADO_EJECUTADA
-            'fecha_fin_atencion' => now(),
-            'celular' => $validated['celular'] ?? $orden->celular,
-            'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
-            'firma_tecnico' => $validated['firma_tecnico'],
-            'firma_suscriptor' => $validated['firma_suscriptor'],
-            'articulos' => $validated['articulos'] ?? $orden->articulos,
-            'mac_router' => $validated['mac_router'] ?? $orden->mac_router,
-            'mac_bridge' => $validated['mac_bridge'] ?? $orden->mac_bridge,
-            'mac_ont' => $validated['mac_ont'] ?? $orden->mac_ont,
-            'otros_equipos' => $validated['otros_equipos'] ?? $orden->otros_equipos,
-        ]);
+        \Illuminate\Support\Facades\DB::table('ordens')
+            ->where('id', $orden->id)
+            ->update([
+                'status' => 'ejecutada',
+                'fecha_fin_atencion' => now(),
+                'celular' => $validated['celular'] ?? $orden->celular,
+                'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
+                'firma_tecnico' => $validated['firma_tecnico'],
+                'firma_suscriptor' => $validated['firma_suscriptor'],
+                // Serialize arrays if necessary, though DB usually handles checking cast. 
+                // Since we use DB::table, we might need json_encode if mysql json type.
+                // Assuming `articulos` is JSON column.
+                'articulos' => isset($validated['articulos']) ? json_encode($validated['articulos']) : $orden->articulos, 
+                'mac_router' => $validated['mac_router'] ?? $orden->mac_router,
+                'mac_bridge' => $validated['mac_bridge'] ?? $orden->mac_bridge,
+                'mac_ont' => $validated['mac_ont'] ?? $orden->mac_ont,
+                'otros_equipos' => $validated['otros_equipos'] ?? $orden->otros_equipos,
+                'updated_at' => now(),
+            ]);
+
+        $orden->refresh();
 
         return response()->json([
             'message' => 'Orden finalizada exitosamente.',
