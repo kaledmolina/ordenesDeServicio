@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SeguimientoTecnicoResource\Pages;
+use App\Filament\Resources\SeguimientoTecnicoResource\RelationManagers\OrdenesRelationManager; // Import correct
 use App\Models\User;
 use App\Models\Orden;
 use Filament\Forms;
@@ -75,7 +76,7 @@ class SeguimientoTecnicoResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\OrdenesRelationManager::class,
+            OrdenesRelationManager::class,
         ];
     }
 
