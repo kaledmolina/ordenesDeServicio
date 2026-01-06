@@ -1,6 +1,6 @@
 <div>
     @if($photo)
-        <img src="{{ route('fotos.show', ['ordenFoto' => $photo]) }}" 
+        <img src="{{ \Illuminate\Support\Facades\Storage::url($photo->path) }}" 
              alt="Vista previa de la foto" 
              class="w-full h-auto rounded-lg">
     @else

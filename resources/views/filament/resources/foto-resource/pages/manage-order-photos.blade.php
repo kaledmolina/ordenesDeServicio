@@ -12,7 +12,7 @@
                     wire:click="mountAction('viewPhotoAction', { photoId: {{ $foto->id }} })"
                     class="cursor-pointer flex-grow"
                 >
-                     <img src="{{ route('fotos.show', ['ordenFoto' => $foto]) }}"
+                     <img src="{{ \Illuminate\Support\Facades\Storage::url($foto->path) }}"
                          alt="Foto de la orden"
                          class="object-cover w-full h-48 transition-transform duration-300 hover:scale-105">
                 </div>

@@ -33,8 +33,8 @@ class ManageOrderPhotos extends Page
                         ->label('Seleccionar Fotos')
                         ->multiple()
                         ->image()
-                        ->disk('local')
-                        ->directory('private/orden-fotos')
+                        ->disk('public')
+                        ->directory('orden-fotos')
                         ->required(),
                 ])
                 ->action(function (array $data) {
