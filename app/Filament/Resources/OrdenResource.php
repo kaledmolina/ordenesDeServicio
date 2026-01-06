@@ -164,7 +164,6 @@ class OrdenResource extends Resource
                             ->label('Empleado / Técnico')
                             ->relationship('technician', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
                             ->searchable()
-                            ->required()
                             ->preload()
                             ->live()
                             ->afterStateUpdated(function ($state, Forms\Set $set) {
