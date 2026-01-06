@@ -180,6 +180,7 @@ class OrdenResource extends Resource
                             ->preload(),
                         Select::make('solicitud_suscriptor')
                             ->label('SOLICITUD SUSCRIPTOR (Reporte)')
+                            ->visible(fn (\Filament\Forms\Get $get) => $get('tipo_orden') === '025')
                             ->options([
                                 '1' => '1 SERVICIO INTERMITENTE',
                                 '2' => '2 SIN SERVICIO DE INTERNET',
@@ -190,13 +191,14 @@ class OrdenResource extends Resource
                                 '133' => '133 CAMBIO DE EQUIPO',
                                 '136' => '136 LUZ ROJA',
                                 '137' => '137 MANTENIMIENTO CORRECTIVO',
-                                '139' => '139 INSTALACION AUTOMONITOR',
-                                '140' => '140 REVISION TCA AUTOMONITOR',
+                                '139' => '139 INSTALACION AUTOMONITOREO',
+                                '140' => '140 REVISION TCA AUTOMONITOREO',
                                 '142' => '142 GARANTIA INTERNET',
                                 '143' => '143 GARANTIA TV',
                                 '144' => '144 GARANTIA TV E INTERNET',
                             ])
                             ->searchable(),
+
                         Select::make('solucion_tecnico')
                             ->label('SOLUCIÓN TÉCNICO')
                             ->options([

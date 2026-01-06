@@ -146,7 +146,26 @@
             </tr>
             <tr>
                 <td class="bold">OBSERVACIONES:</td>
-                <td colspan="10">{{ $orden->solicitud_suscriptor ?? '---' }} &nbsp;&nbsp;&nbsp; {{ $orden->solicitado_por ?? '' }}</td>
+                @php
+                    $solicitudOptions = [
+                        '1' => '1 SERVICIO INTERMITENTE',
+                        '2' => '2 SIN SERVICIO DE INTERNET',
+                        '3' => '3 SIN ALCANCE POTENCIA',
+                        '4' => '4 SERVICIO LENTO',
+                        '5' => '5 SIN SERVICIO DE TELEVISION',
+                        '132' => '132 CAMBIO DE CUENTA EN WIM',
+                        '133' => '133 CAMBIO DE EQUIPO',
+                        '136' => '136 LUZ ROJA',
+                        '137' => '137 MANTENIMIENTO CORRECTIVO',
+                        '139' => '139 INSTALACION AUTOMONITOREO',
+                        '140' => '140 REVISION TCA AUTOMONITOREO',
+                        '142' => '142 GARANTIA INTERNET',
+                        '143' => '143 GARANTIA TV',
+                        '144' => '144 GARANTIA TV E INTERNET',
+                    ];
+                    $solicitudText = $solicitudOptions[$orden->solicitud_suscriptor] ?? $orden->solicitud_suscriptor ?? '---';
+                @endphp
+                <td colspan="10">{{ $solicitudText }} &nbsp;&nbsp;&nbsp; {{ $orden->solicitado_por ?? '' }}</td>
                 <td class="text-right text-danger bold" style="color: red;">Plan: {{ $orden->cliente->plan_internet ?? '---' }}</td>
             </tr>
         </table>
