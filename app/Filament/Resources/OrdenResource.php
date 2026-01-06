@@ -299,6 +299,26 @@ class OrdenResource extends Resource
                             ->confirmable()
                             ->columnSpan(1),
                     ])->columns(2),
+                
+                // SECCIÓN 9: EVIDENCIA FOTOGRÁFICA
+                Section::make('Evidencia Fotográfica')
+                    ->schema([
+                        Repeater::make('fotos')
+                            ->relationship()
+                            ->schema([
+                                FileUpload::make('path')
+                                    ->label('Foto')
+                                    ->image()
+                                    ->disk('local') // Mantener consistencia con el backend (API)
+                                    ->directory('orden-fotos')
+                                    ->columnSpanFull(),
+                            ])
+                            ->grid(2)
+                            ->defaultItems(0)
+                            ->addActionLabel('Agregar Foto')
+                            ->reorderableWithButtons(),
+                    ])
+                    ->collapsible(),
 
                 // Hidden fields for tracking
                 Hidden::make('fecha_asignacion'),
