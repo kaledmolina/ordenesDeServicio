@@ -309,7 +309,7 @@ class OrdenResource extends Resource
                                 FileUpload::make('path')
                                     ->label('Foto')
                                     ->image()
-                                    ->disk('local') // Mantener consistencia con el backend (API)
+                                    ->disk('public') // Cambiado a public para que se vea en el panel
                                     ->directory('orden-fotos')
                                     ->columnSpanFull(),
                             ])

@@ -276,8 +276,8 @@ class OrderController extends Controller
             'photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        // Guarda la foto en el disco 'local' (privado) y obtiene la ruta
-        $path = $request->file('photo')->store('orden-fotos', 'local');
+        // Guarda la foto en el disco 'public' para que sea accesible
+        $path = $request->file('photo')->store('orden-fotos', 'public');
 
         // Crea el registro en la base de datos
         $orden->fotos()->create(['path' => $path]);
@@ -313,13 +313,17 @@ class OrderController extends Controller
             abort(403, 'No autorizado.');
         }
 
-        // Verifica que el archivo exista en el disco 'local'
-        if (!Storage::disk('local')->exists($ordenFoto->path)) {
-            abort(404, 'Imagen no encontrada.');
+        // Primero buscar en disco público (nuevas fotos)
+        if (Storage::disk('public')->exists($ordenFoto->path)) {
+            return Storage::disk('public')->response($ordenFoto->path);
         }
 
-        // Devuelve el archivo con el tipo de contenido correcto (ej. image/jpeg)
-        return Storage::disk('local')->response($ordenFoto->path);
+        // Si no, buscar en disco local (fotos antiguas)
+        if (Storage::disk('local')->exists($ordenFoto->path)) {
+            return Storage::disk('local')->response($ordenFoto->path);
+        }
+
+        abort(404, 'Imagen no encontrada.');
     }
 
     /**
