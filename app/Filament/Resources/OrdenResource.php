@@ -85,6 +85,17 @@ class OrdenResource extends Resource
                                 }
                             })
                             ->required()
+                            ->unique(
+                                'ordens', 
+                                'cliente_id', 
+                                ignoreRecord: true,
+                                modifyRuleUsing: function ($rule) {
+                                    return $rule->whereNotIn('estado_orden', ['cerrada', 'anulada']);
+                                } 
+                            )
+                            ->validationMessages([
+                                'unique' => 'Este cliente ya tiene una orden activa. Debe cerrar la anterior para crear una nueva.',
+                            ])
                             ->columnSpan(2),
                         Hidden::make('nombre_cliente'),
                         TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
