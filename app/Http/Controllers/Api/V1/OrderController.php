@@ -29,6 +29,17 @@ class OrderController extends Controller
             $query->where('estado_orden', $request->status);
         }
 
+        // Buscador
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('numero_orden', 'like', "%{$searchTerm}%")
+                  ->orWhere('nombre_cliente', 'like', "%{$searchTerm}%")
+                  ->orWhere('direccion', 'like', "%{$searchTerm}%")
+                  ->orWhere('cedula', 'like', "%{$searchTerm}%");
+            });
+        }
+
         // Ordenamos por la más reciente y paginamos los resultados
         $orders = $query->latest()->paginate(15); // Muestra 15 órdenes por página
 
