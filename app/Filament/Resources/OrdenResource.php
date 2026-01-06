@@ -207,6 +207,7 @@ class OrdenResource extends Resource
                                 '2 REINICIO EQUIPOS' => '2 REINICIO EQUIPOS',
                                 '3 CAMBIO EQUIPO' => '3 CAMBIO EQUIPO',
                             ])
+                            ->required(fn (\Filament\Forms\Get $get) => $get('estado_orden') === Orden::ESTADO_CERRADA)
                             ->searchable(),
                     ])->columns(2),
 
