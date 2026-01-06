@@ -52,18 +52,18 @@ class OrdenesRelationManager extends RelationManager
                 // Tiempos Exactos
                 TextColumn::make('tiempo_traslado')
                     ->label('T. Traslado')
-                    ->state(fn (Model $record) => self::calcDiff($record->fecha_asignacion, $record->fecha_llegada))
-                    ->description('Asignada -> En Sitio'),
+                    ->state(fn (Model $record) => self::calcDiff($record->fecha_inicio_atencion, $record->fecha_llegada))
+                    ->description('Inicio (En Proceso) -> Llegada'),
 
                 TextColumn::make('tiempo_espera')
                     ->label('T. En Sitio')
-                    ->state(fn (Model $record) => self::calcDiff($record->fecha_llegada, $record->fecha_inicio_atencion))
-                    ->description('Llegada -> Inicio'),
+                    ->state(fn (Model $record) => self::calcDiff($record->fecha_llegada, $record->fecha_fin_atencion))
+                    ->description('Llegada -> Fin (Ejecución)'),
 
                 TextColumn::make('tiempo_ejecucion')
-                    ->label('T. Ejecución')
+                    ->label('T. Total')
                     ->state(fn (Model $record) => self::calcDiff($record->fecha_inicio_atencion, $record->fecha_fin_atencion))
-                    ->description('Inicio -> Fin'),
+                    ->description('Inicio -> Fin Total'),
             ])
             ->filters([
                 //
