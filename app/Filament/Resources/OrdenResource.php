@@ -113,6 +113,7 @@ class OrdenResource extends Resource
                                 '025' => '025 REVISION TECNICA',
                                 '037' => '037 CAMBIO CONTRASEÑA',
                             ])
+                            ->live()
                             ->searchable(),
                         Select::make('tipo_funcion')
                             ->label('TIPO FUNCION')
