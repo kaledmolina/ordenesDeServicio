@@ -207,7 +207,6 @@ class OrdenResource extends Resource
                                 '2 REINICIO EQUIPOS' => '2 REINICIO EQUIPOS',
                                 '3 CAMBIO EQUIPO' => '3 CAMBIO EQUIPO',
                             ])
-                            ->required(fn (\Filament\Forms\Get $get) => $get('estado_orden') === Orden::ESTADO_CERRADA)
                             ->searchable(),
                     ])->columns(2),
 
@@ -593,10 +592,22 @@ class OrdenResource extends Resource
                     ->icon('heroicon-o-lock-closed')
                     ->color('danger')
                     ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA && Auth::user()->hasAnyRole(['administrador', 'operador']))
-                    ->action(function (Orden $record) {
+                    ->form([
+                        Select::make('solucion_tecnico')
+                            ->label('SOLUCIÓN TÉCNICO')
+                            ->options([
+                                '1 CAMBIO - CONECTOR' => '1 CAMBIO - CONECTOR',
+                                '2 REINICIO EQUIPOS' => '2 REINICIO EQUIPOS',
+                                '3 CAMBIO EQUIPO' => '3 CAMBIO EQUIPO',
+                            ])
+                            ->required()
+                            ->searchable(),
+                    ])
+                    ->action(function (Orden $record, array $data) {
                         $record->update([
                             'estado_orden' => Orden::ESTADO_CERRADA,
                             'fecha_cierre' => now(),
+                            'solucion_tecnico' => $data['solucion_tecnico'],
                         ]);
                     }),
                 Action::make('anularOrden')
