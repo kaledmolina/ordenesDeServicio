@@ -115,7 +115,7 @@
         <!-- VENDEDOR / ORDEN BAR -->
         <table style="width: 100%; border-top: 1px solid #000; border-bottom: 1px solid #000; font-size: 10px; margin-bottom: 5px;">
             <tr>
-                <td width="40%">Vendedor: {{ $orden->technician->name ?? '---' }}</td>
+                <td width="40%">Vendedor: {{ $orden->cliente->vendedor ?? '---' }}</td>
                 <td width="30%">Ingreso orden: {{ $orden->numero_orden }}</td> {{-- Using numero_orden as ingreso --}}
                 <td width="20%">SALDO A LA FECHA: {{ $orden->saldo_cliente ?? 0 }}</td>
                 <td width="10%" class="text-right bold">EMPRESA</td>
@@ -134,20 +134,20 @@
                 <td class="bold">NOMBRES:</td>
                 <td colspan="3">{{ $orden->cliente->name ?? 'SIN CLIENTE' }}</td>
                 <td class="bold">Cc/Nit:</td>
-                <td>{{ $orden->cedula ?? $orden->cliente->email ?? '---' }}</td>
+                <td>{{ $orden->cedula ?? $orden->cliente->cedula ?? '---' }}</td>
             </tr>
             <tr>
                 <td class="bold">DIRECCION:</td>
                 <td colspan="5">{{ $orden->direccion ?? '---' }}</td>
                 <td class="bold">BARRIO:</td>
-                <td>{{ $orden->barrio ?? '---' }}</td>
+                <td>{{ $orden->cliente->barrio ?? '---' }}</td>
                 <td class="bold">TELEFONO:</td>
                 <td colspan="3">{{ $orden->telefono ?? '---' }}</td>
             </tr>
             <tr>
                 <td class="bold">OBSERVACIONES:</td>
                 <td colspan="10">{{ $orden->solicitud_suscriptor ?? '---' }} &nbsp;&nbsp;&nbsp; {{ $orden->solicitado_por ?? '' }}</td>
-                <td class="text-right text-danger bold" style="color: red;">Plan: {{ $orden->tipo_orden ?? '---' }}</td>
+                <td class="text-right text-danger bold" style="color: red;">Plan: {{ $orden->cliente->plan_internet ?? '---' }}</td>
             </tr>
         </table>
 

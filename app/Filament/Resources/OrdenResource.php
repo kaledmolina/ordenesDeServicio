@@ -79,7 +79,7 @@ class OrdenResource extends Resource
                                 $user = User::find($state);
                                 if ($user) {
                                     $set('direccion', $user->direccion);
-                                    $set('cedula', $user->email); // Usando email como ejemplo de dato único, cambiar a cedula si existe
+                                    $set('cedula', $user->cedula); // Corregido: Usar cédula real
                                     $set('telefono', $user->telefono);
                                     $set('nombre_cliente', $user->name);
                                 }
