@@ -59,10 +59,7 @@ class FotoResource extends Resource
                         'cerrada' => 'success',
                         'anulada' => 'danger',
                         default => 'gray',
-                    }),
-                ViewColumn::make('fotos_preview')
-                    ->view('filament.tables.columns.order-photos')
-                    ->label('Fotos'),
+                    })
             ])
             ->filters([
                 Filter::make('sin_fotos')
