@@ -44,15 +44,19 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
                 $emailsToSearch[] = $email;
         }
 
-        // 2. Fetch existing users in one query (for skipping)
-        $existingUsers = User::query()
-            ->where(function ($q) use ($cedulasToSearch, $codigosToSearch) {
-                if (!empty($cedulasToSearch))
-                    $q->whereIn('cedula', $cedulasToSearch);
-                if (!empty($codigosToSearch))
-                    $q->orWhereIn('codigo_contrato', $codigosToSearch);
-            })
-            ->get();
+        // 2. Fetch existing users efficiently (Split queries to avoid OR scans)
+
+        // Query 1: By Cedula
+        $existingByCedula = [];
+        if (!empty($cedulasToSearch)) {
+            $existingByCedula = User::whereIn('cedula', $cedulasToSearch)->select('id', 'cedula')->get();
+        }
+
+        // Query 2: By Codigo
+        $existingByCodigo = [];
+        if (!empty($codigosToSearch)) {
+            $existingByCodigo = User::whereIn('codigo_contrato', $codigosToSearch)->select('id', 'codigo_contrato')->get();
+        }
 
         // Fetch existing emails to prevent duplicate email error
         $existingEmails = [];
@@ -66,9 +70,11 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
 
         // Map for faster lookup: 'cedula_XXX' => true, 'codigo_YYY' => true
         $existingMap = [];
-        foreach ($existingUsers as $u) {
+        foreach ($existingByCedula as $u) {
             if ($u->cedula)
                 $existingMap['cedula_' . $u->cedula] = true;
+        }
+        foreach ($existingByCodigo as $u) {
             if ($u->codigo_contrato)
                 $existingMap['codigo_' . $u->codigo_contrato] = true;
         }
@@ -206,7 +212,12 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
         // Email is passed as argument, already ensured not null and unique
 
 
-        $data['password'] = Hash::make($cedula ?? '123456');
+        // Clean and truncate password base (cedula) to avoid Bcrypt 'too long' error
+        $passBase = $cedula ?? '123456';
+        if (strlen($passBase) > 30) {
+            $passBase = substr($passBase, 0, 30);
+        }
+        $data['password'] = Hash::make($passBase);
         $data['created_at'] = now();
 
         $user = User::create($data);
@@ -215,7 +226,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
 
     public function chunkSize(): int
     {
-        return 200;
+        return 100;
     }
 
     public function getCreatedCount()
