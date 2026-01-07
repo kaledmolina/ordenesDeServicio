@@ -308,24 +308,29 @@ class OrdenResource extends Resource
                     ->label('N° Orden')
                     ->searchable()
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
-                    ->openUrlInNewTab(),
+                    ->openUrlInNewTab()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('cliente.name')
                     ->label('Cliente')
                     ->searchable()
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
-                    ->openUrlInNewTab(),
+                    ->openUrlInNewTab()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('cliente.barrio')
                     ->label('Barrio')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('tipo_orden')
                     ->label('Tipo Orden')
                     ->formatStateUsing(fn($state) => Orden::TIPO_ORDEN_OPTIONS[$state] ?? $state)
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('solicitud_suscriptor')
                     ->label('Reporte')
                     ->formatStateUsing(fn($state) => Orden::SOLICITUD_SUSCRIPTOR_OPTIONS[$state] ?? $state)
                     ->searchable()
-                    ->wrap(),
+                    ->wrap()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 BadgeColumn::make('estado_orden')
                     ->label('Estado')
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
@@ -338,7 +343,8 @@ class OrdenResource extends Resource
                         'success' => Orden::ESTADO_EJECUTADA,
                         'danger' => Orden::ESTADO_CERRADA,
                         'gray' => Orden::ESTADO_ANULADA,
-                    ]),
+                    ])
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('estado_orden')
