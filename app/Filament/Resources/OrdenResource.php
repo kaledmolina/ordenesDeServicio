@@ -632,22 +632,10 @@ class OrdenResource extends Resource
                     ->icon('heroicon-o-lock-closed')
                     ->color('danger')
                     ->visible(fn(Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA && Auth::user()->hasAnyRole(['administrador', 'operador']))
-                    ->form([
-                        Select::make('solucion_tecnico')
-                            ->label('SOLUCIÓN TÉCNICO')
-                            ->options([
-                                '1 CAMBIO - CONECTOR' => '1 CAMBIO - CONECTOR',
-                                '2 REINICIO EQUIPOS' => '2 REINICIO EQUIPOS',
-                                '3 CAMBIO EQUIPO' => '3 CAMBIO EQUIPO',
-                            ])
-                            ->required()
-                            ->searchable(),
-                    ])
-                    ->action(function (Orden $record, array $data) {
+                    ->action(function (Orden $record) {
                         $record->update([
                             'estado_orden' => Orden::ESTADO_CERRADA,
                             'fecha_cierre' => now(),
-                            'solucion_tecnico' => $data['solucion_tecnico'],
                         ]);
                     }),
                 Action::make('anularOrden')
