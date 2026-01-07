@@ -49,7 +49,7 @@ class OrdenResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        
+
         // Si el usuario NO es administrador ni operador, solo ve sus propias órdenes
         if (!Auth::user()->hasAnyRole(['administrador', 'operador'])) {
             $query->where('technician_id', Auth::id());
@@ -66,15 +66,15 @@ class OrdenResource extends Resource
             ->schema([
                 // SECCIÓN 1: ENCABEZADO DEL CLIENTE
                 Section::make('Encabezado del Cliente')
-                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         Select::make('cliente_id')
                             ->label('Código - Nombres Cliente')
-                            ->relationship('cliente', 'name', fn (Builder $query) => $query->role('cliente'))
+                            ->relationship('cliente', 'name', fn(Builder $query) => $query->role('cliente'))
                             ->searchable()
                             ->preload()
                             ->live()
-                            ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
+                            ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                             ->afterStateUpdated(function ($state, Forms\Set $set) {
                                 $user = User::find($state);
                                 if ($user) {
@@ -86,12 +86,12 @@ class OrdenResource extends Resource
                             })
                             ->required()
                             ->unique(
-                                'ordens', 
-                                'cliente_id', 
+                                'ordens',
+                                'cliente_id',
                                 ignoreRecord: true,
                                 modifyRuleUsing: function ($rule) {
                                     return $rule->whereNotIn('estado_orden', ['cerrada', 'anulada']);
-                                } 
+                                }
                             )
                             ->validationMessages([
                                 'unique' => 'Este cliente ya tiene una orden activa. Debe cerrar la anterior para crear una nueva.',
@@ -100,12 +100,12 @@ class OrdenResource extends Resource
                         Hidden::make('nombre_cliente'),
                         TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
                         TextInput::make('cedula')->label('CEDULA')->columnSpan(1),
-                        TextInput::make('precinto')->label('PRECINTO')->columnSpan(1)->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador'])),
+                        TextInput::make('precinto')->label('PRECINTO')->columnSpan(1)->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador'])),
                     ])->columns(5),
 
                 // SECCIÓN 2: DATOS DE LA ORDEN
                 Section::make('Datos de la Orden')
-                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         Select::make('tipo_orden')
                             ->label('TIPO ORDEN')
@@ -127,7 +127,7 @@ class OrdenResource extends Resource
                         Forms\Components\DatePicker::make('fecha_vencimiento')->label('F. VENC'),
                         TextInput::make('numero_orden')
                             ->label('NUMERO')
-                            ->default(fn () => (Orden::max('numero_orden') ?? 0) + 1)
+                            ->default(fn() => (Orden::max('numero_orden') ?? 0) + 1)
                             ->readOnly(),
                         Select::make('estado_orden')
                             ->label('ESTADO ORDEN')
@@ -141,13 +141,13 @@ class OrdenResource extends Resource
                                 Orden::ESTADO_ANULADA => 'Anulada',
                             ])
                             ->default(Orden::ESTADO_PENDIENTE)
-                            ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
+                            ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                             ->dehydrated(),
                     ])->columns(4),
 
                 // SECCIÓN 3: DATOS DE CONTACTO Y ESTADO
                 Section::make('Datos de Contacto y Estado')
-                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         TextInput::make('direccion_asociado')->label('DIRECCION ASOCIADO'),
                         TextInput::make('telefono')->label('TELEFONO'),
@@ -158,11 +158,11 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 4: ASIGNACIÓN TÉCNICA Y DIAGNÓSTICO
                 Section::make('Asignación Técnica y Diagnóstico')
-                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         Select::make('technician_id') // Mapped to tecnico_principal
                             ->label('Empleado / Técnico')
-                            ->relationship('technician', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
+                            ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
                             ->searchable()
                             ->preload()
                             ->live()
@@ -174,13 +174,13 @@ class OrdenResource extends Resource
                             }),
                         Select::make('tecnico_auxiliar_id')
                             ->label('Técnico Auxiliar')
-                            ->relationship('tecnicoAuxiliar', 'name', fn (Builder $query) => $query->whereHas('roles', fn ($q) => $q->where('name', 'tecnico')))
+                            ->relationship('tecnicoAuxiliar', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
                             ->searchable()
-                            ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
+                            ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                             ->preload(),
                         Select::make('solicitud_suscriptor')
                             ->label('SOLICITUD SUSCRIPTOR (Reporte)')
-                            ->visible(fn (\Filament\Forms\Get $get) => $get('tipo_orden') === '025')
+                            ->visible(fn(\Filament\Forms\Get $get) => $get('tipo_orden') === '025')
                             ->options([
                                 '1' => '1 SERVICIO INTERMITENTE',
                                 '2' => '2 SIN SERVICIO DE INTERNET',
@@ -211,7 +211,7 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 5: TOTALES Y OBSERVACIONES
                 Section::make('Totales y Observaciones')
-                    ->disabled(fn () => !Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         TextInput::make('valor_total')->label('VALOR TOTAL')->numeric()->prefix('$'),
                         Textarea::make('observaciones')->label('OBSERVACIONES')->columnSpanFull(),
@@ -263,7 +263,7 @@ class OrdenResource extends Resource
                                 ['grupo_articulo' => 'Conector RG6', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
                                 ['grupo_articulo' => 'Cable coaxial', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
                             ])
-                            ->live(), 
+                            ->live(),
                     ]),
 
                 // SECCIÓN 7: EQUIPOS INSTALADOS/RETIRADOS
@@ -289,7 +289,7 @@ class OrdenResource extends Resource
                             ->confirmable()
                             ->columnSpan(1),
                     ])->columns(2),
-                
+
                 // SECCIÓN 9: EVIDENCIA FOTOGRÁFICA
                 Section::make('Evidencia Fotográfica')
                     ->schema([
@@ -325,22 +325,22 @@ class OrdenResource extends Resource
                 TextColumn::make('numero_orden')
                     ->label('N° Orden')
                     ->searchable()
-                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab(),
                 TextColumn::make('technician.name')
                     ->label('Técnico')
                     ->searchable()
-                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab(),
                 TextColumn::make('fecha_trn')
                     ->label('Fecha')
                     ->date('d/m/Y')
                     ->sortable()
-                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab(),
                 BadgeColumn::make('estado_orden')
                     ->label('Estado')
-                    ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                    ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab()
                     ->colors([
                         'gray' => Orden::ESTADO_PENDIENTE,
@@ -366,38 +366,33 @@ class OrdenResource extends Resource
                     ]),
                 SelectFilter::make('technician_id')
                     ->label('Técnico')
-                    ->relationship('technician', 'name')
+                    ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
                     ->searchable()
                     ->preload(),
                 SelectFilter::make('tipo_orden')
                     ->label('Tipo de Orden')
                     ->options([
-                        '003' => '003 PUNTO ADICIONAL',
-                        '005' => '005 CORTE',
-                        '008' => '008 TRASLADOS',
-                        '009' => '009 RECONEXIONES',
-                        '015' => '015 MULTA',
-                        '016' => '016 RETIRO DEFINITIVO',
-                        '017' => '017 EMISION DE PUBLICIDAD',
-                        '021' => '021 MATERIALES',
-                        '022' => '022 SOPORTE REMOTO',
-                        '023' => '023 DESCUENTO INTERNET',
-                        '024' => '024 INTERNET',
                         '025' => '025 REVISION TECNICA',
-                        '026' => '026 CORTE INTERNET',
-                        '027' => '027 SUSPENSION INTERNET',
-                        '028' => '028 CAMBIO ESTADO',
-                        '029' => '029 TRASLADO INTERNO INT',
-                        '030' => '030 CUENTA COBRO',
-                        '031' => '031 COPIAS Y REPRODUCCIONES',
-                        '032' => '032 TRASLADO INTERNET',
-                        '033' => '033 RECONEXION INTERNET',
-                        '034' => '034 RETIRO INTERNET',
-                        '035' => '035 ORDEN DE APOYO',
-                        '036' => '036 INSTALACION CAMARA',
                         '037' => '037 CAMBIO CONTRASEÑA',
-                        '044' => '044 CAMBIO PLAN INTERNET',
-                        '048' => '048 CAMBIO PLAN TV',
+                    ])
+                    ->searchable(),
+                SelectFilter::make('solicitud_suscriptor')
+                    ->label('Reporte')
+                    ->options([
+                        '1' => '1 SERVICIO INTERMITENTE',
+                        '2' => '2 SIN SERVICIO DE INTERNET',
+                        '3' => '3 SIN ALCANCE POTENCIA',
+                        '4' => '4 SERVICIO LENTO',
+                        '5' => '5 SIN SERVICIO DE TELEVISION',
+                        '132' => '132 CAMBIO DE CUENTA EN WIM',
+                        '133' => '133 CAMBIO DE EQUIPO',
+                        '136' => '136 LUZ ROJA',
+                        '137' => '137 MANTENIMIENTO CORRECTIVO',
+                        '139' => '139 INSTALACION AUTOMONITOREO',
+                        '140' => '140 REVISION TCA AUTOMONITOREO',
+                        '142' => '142 GARANTIA INTERNET',
+                        '143' => '143 GARANTIA TV',
+                        '144' => '144 GARANTIA TV E INTERNET',
                     ])
                     ->searchable(),
                 Filter::make('fecha_trn')
@@ -409,11 +404,11 @@ class OrdenResource extends Resource
                         return $query
                             ->when(
                                 $data['fecha_desde'],
-                                fn (Builder $query, $date) => $query->whereDate('fecha_trn', '>=', $date),
+                                fn(Builder $query, $date) => $query->whereDate('fecha_trn', '>=', $date),
                             )
                             ->when(
                                 $data['fecha_hasta'],
-                                fn (Builder $query, $date) => $query->whereDate('fecha_trn', '<=', $date),
+                                fn(Builder $query, $date) => $query->whereDate('fecha_trn', '<=', $date),
                             );
                     }),
             ])
@@ -423,19 +418,19 @@ class OrdenResource extends Resource
                     Action::make('view')
                         ->label('Ver')
                         ->icon('heroicon-o-eye')
-                        ->url(fn (Orden $record) => route('orden.pdf.stream', $record))
+                        ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                         ->openUrlInNewTab()
                         ->extraAttributes(['target' => '_blank']),
 
                     Tables\Actions\EditAction::make()
-                        ->hidden(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA && !Auth::user()->hasAnyRole(['administrador', 'operador'])),
+                        ->hidden(fn(Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA && !Auth::user()->hasAnyRole(['administrador', 'operador'])),
                     Action::make('downloadPdf')
                         ->label('Descargar PDF')
                         ->icon('heroicon-o-document-arrow-down')
                         ->action(function (Orden $record) {
                             $pdf = Pdf::loadView('pdf.orden-pdf', ['orden' => $record, 'is_blank' => false])
                                 ->setOption(['isRemoteEnabled' => true, 'chroot' => public_path()]);
-                            return response()->streamDownload(fn() => print($pdf->output()), 'orden-'.$record->numero_orden.'.pdf');
+                            return response()->streamDownload(fn() => print ($pdf->output()), 'orden-' . $record->numero_orden . '.pdf');
                         }),
                     Tables\Actions\DeleteAction::make(),
                 ]),
@@ -443,12 +438,12 @@ class OrdenResource extends Resource
                     ->label('Aceptar Orden')
                     ->icon('heroicon-o-check')
                     ->color('info')
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA && $record->technician_id == Auth::id())
+                    ->visible(fn(Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA && $record->technician_id == Auth::id())
                     ->action(function (Orden $record) {
                         $user = Auth::user();
-                        
+
                         // Validar si el técnico ya tiene una orden en proceso (Solo si NO es admin/operador)
-                        if (! $user->hasAnyRole(['administrador', 'operador'])) {
+                        if (!$user->hasAnyRole(['administrador', 'operador'])) {
                             $activeOrder = Orden::where('technician_id', $user->id)
                                 ->where('estado_orden', Orden::ESTADO_EN_PROCESO)
                                 ->where('id', '!=', $record->id)
@@ -473,7 +468,7 @@ class OrdenResource extends Resource
                     ->label('Llegué a Sitio')
                     ->icon('heroicon-o-map-pin')
                     ->color('primary')
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EN_PROCESO)
+                    ->visible(fn(Orden $record) => $record->estado_orden === Orden::ESTADO_EN_PROCESO)
                     ->action(function (Orden $record) {
                         $record->update([
                             'estado_orden' => Orden::ESTADO_EN_SITIO,
@@ -484,8 +479,8 @@ class OrdenResource extends Resource
                     ->label('Finalizar Atención')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EN_SITIO)
-                    ->mountUsing(fn (Forms\ComponentContainer $form, Orden $record) => $form->fill([
+                    ->visible(fn(Orden $record) => $record->estado_orden === Orden::ESTADO_EN_SITIO)
+                    ->mountUsing(fn(Forms\ComponentContainer $form, Orden $record) => $form->fill([
                         'articulos' => $record->articulos,
                         'mac_router' => $record->mac_router,
                         'mac_bridge' => $record->mac_bridge,
@@ -538,7 +533,7 @@ class OrdenResource extends Resource
                                     ])
                                     ->columns(8)
                                     ->defaultItems(0) // No items by default here to keep it clean, or 1 if preferred
-                                    ->live(), 
+                                    ->live(),
                             ])
                             ->collapsed(), // Collapsed by default to keep modal clean
 
@@ -569,13 +564,13 @@ class OrdenResource extends Resource
                             'fecha_fin_atencion' => now(),
                             'firma_tecnico' => $data['firma_tecnico'],
                             'firma_suscriptor' => $data['firma_suscriptor'],
-                            'articulos' => $data['articulos'] ?? $record->articulos, 
+                            'articulos' => $data['articulos'] ?? $record->articulos,
                             'mac_router' => $data['mac_router'],
                             'mac_bridge' => $data['mac_bridge'],
                             'mac_ont' => $data['mac_ont'],
                             'otros_equipos' => $data['otros_equipos'],
                         ]);
-                        
+
                         // Guardar evidencias
                         if (!empty($data['evidencias'])) {
                             foreach ($data['evidencias'] as $path) {
@@ -590,7 +585,7 @@ class OrdenResource extends Resource
                     ->label('Cerrar Orden')
                     ->icon('heroicon-o-lock-closed')
                     ->color('danger')
-                    ->visible(fn (Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA && Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->visible(fn(Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA && Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->form([
                         Select::make('solucion_tecnico')
                             ->label('SOLUCIÓN TÉCNICO')
@@ -613,7 +608,7 @@ class OrdenResource extends Resource
                     ->label('Anular Orden')
                     ->icon('heroicon-o-x-circle')
                     ->color('gray')
-                    ->visible(fn (Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_ANULADA, Orden::ESTADO_CERRADA]) && Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->visible(fn(Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_ANULADA, Orden::ESTADO_CERRADA]) && Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->requiresConfirmation()
                     ->action(function (Orden $record) {
                         $record->update([
@@ -627,12 +622,12 @@ class OrdenResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [];
     }
-    
+
     public static function getPages(): array
     {
         return [
