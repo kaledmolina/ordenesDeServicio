@@ -215,7 +215,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
 
     public function chunkSize(): int
     {
-        return 1000;
+        return 200;
     }
 
     public function getCreatedCount()
