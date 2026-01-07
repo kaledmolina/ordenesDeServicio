@@ -34,14 +34,7 @@ class ListClientes extends ListRecords
                                     scorePlayer: 0,
                                     scoreComputer: 0,
                                     gameInterval: null,
-                                    handleClick() {
-                                        this.clicks++;
-                                        if (this.clicks >= 7) {
-                                            this.showGame = true;
-                                            this.$nextTick(() => this.initGame());
-                                        }
-                                    },
-                                    initGame() {
+                                    initGame: function() {
                                         const canvas = this.$refs.gameCanvas;
                                         if (!canvas) return;
                                         const ctx = canvas.getContext(\'2d\');
@@ -126,13 +119,13 @@ class ListClientes extends ListRecords
                                             ctx.fillRect(canvas.width - paddleWidth, computerY, paddleWidth, paddleHeight);
 
                                             // Scores
-                                            ctx.font = "20px Courier New";
+                                            ctx.font = \'20px Courier New\';
                                             ctx.fillText(this.scorePlayer, 100, 50);
                                             ctx.fillText(this.scoreComputer, canvas.width - 100, 50);
 
                                         }, 1000/60);
                                     },
-                                    resetBall(ball, canvas) {
+                                    resetBall: function(ball, canvas) {
                                         ball.x = canvas.width / 2;
                                         ball.y = canvas.height / 2;
                                         ball.dx = -ball.dx;
@@ -144,7 +137,7 @@ class ListClientes extends ListRecords
                                 wire:target="callMountedAction"
                             >
                                 <!-- Spinner View -->
-                                <div x-show="!showGame" @click="handleClick" class="flex flex-col items-center justify-center gap-3 cursor-pointer select-none" title="Click me 7 times!">
+                                <div x-show="!showGame" @click="clicks++; if(clicks >= 5) { showGame = true; $nextTick(() => initGame()); }" class="flex flex-col items-center justify-center gap-3 cursor-pointer select-none" title="Click me 5 times!">
                                     <svg class="animate-spin h-8 w-8 text-primary-600 dark:text-primary-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
