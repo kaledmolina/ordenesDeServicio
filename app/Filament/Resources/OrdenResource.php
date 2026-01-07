@@ -319,17 +319,23 @@ class OrdenResource extends Resource
                 TextColumn::make('cliente.barrio')
                     ->label('Barrio')
                     ->searchable()
+                    ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('tipo_orden')
                     ->label('Tipo Orden')
                     ->formatStateUsing(fn($state) => Orden::TIPO_ORDEN_OPTIONS[$state] ?? $state)
                     ->searchable()
+                    ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('solicitud_suscriptor')
                     ->label('Reporte')
                     ->formatStateUsing(fn($state) => Orden::SOLICITUD_SUSCRIPTOR_OPTIONS[$state] ?? $state)
                     ->searchable()
                     ->wrap()
+                    ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
+                    ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: false),
                 BadgeColumn::make('estado_orden')
                     ->label('Estado')
