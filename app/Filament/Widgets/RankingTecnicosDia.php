@@ -11,12 +11,12 @@ use Illuminate\Database\Eloquent\Builder;
 class RankingTecnicosDia extends BaseWidget
 {
     protected static ?string $heading = '🏆 Ranking Diario (Órdenes Ejecutadas)';
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
     protected static ?int $sort = 1;
 
     public static function canView(): bool
     {
-        return auth()->user()->hasAnyRole(['administrador', 'operador', 'tecnico']);
+        return false;
     }
 
     public function table(Table $table): Table
@@ -24,11 +24,13 @@ class RankingTecnicosDia extends BaseWidget
         return $table
             ->query(
                 User::query()
-                    ->whereHas('roles', fn ($q) => $q->where('name', 'tecnico'))
-                    ->withCount(['ordenes as ordenes_ejecutadas_hoy_count' => function (Builder $query) {
-                        $query->where('estado_orden', 'ejecutada')
-                              ->whereDate('fecha_fin_atencion', today());
-                    }])
+                    ->whereHas('roles', fn($q) => $q->where('name', 'tecnico'))
+                    ->withCount([
+                        'ordenes as ordenes_ejecutadas_hoy_count' => function (Builder $query) {
+                            $query->where('estado_orden', 'ejecutada')
+                                ->whereDate('fecha_fin_atencion', today());
+                        }
+                    ])
                     ->orderByDesc('ordenes_ejecutadas_hoy_count')
                     ->take(5) // Top 5
             )
