@@ -33,7 +33,7 @@ class ListClientes extends ListRecords
                                     showGame: false,
                                     scorePlayer1: 0,
                                     scorePlayer2: 0,
-                                    mode: 'cpu', // 'cpu' or 'pvp'
+                                    mode: \'cpu\', // \'cpu\' or \'pvp\'
                                     keys: {},
                                     gameInterval: null,
                                     
@@ -47,7 +47,7 @@ class ListClientes extends ListRecords
                                     },
 
                                     toggleMode: function() {
-                                        this.mode = (this.mode === 'cpu') ? 'pvp' : 'cpu';
+                                        this.mode = (this.mode === \'cpu\') ? \'pvp\' : \'cpu\';
                                         this.scorePlayer1 = 0;
                                         this.scorePlayer2 = 0;
                                     },
