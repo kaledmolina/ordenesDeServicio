@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 
 class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
@@ -220,8 +221,42 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
         $data['password'] = Hash::make($passBase);
         $data['created_at'] = now();
 
-        $user = User::create($data);
-        $user->assignRole('cliente');
+        // Try to create user with retry logic for unique constraint violations
+        $attempts = 0;
+        $maxAttempts = 3;
+        $user = null;
+
+        while ($attempts < $maxAttempts) {
+            try {
+                $user = User::create($data);
+                break; // Success
+            } catch (QueryException $e) {
+                // Check if it's a unique constraint violation (1062)
+                if ($e->errorInfo[1] == 1062) {
+                    $attempts++;
+                    // Modify email if that was the issue (most likely)
+                    if (str_contains($e->getMessage(), 'users_email_unique')) {
+                        $parts = explode('@', $data['email']);
+                        $data['email'] = $parts[0] . '.' . rand(10000, 99999) . '@' . ($parts[1] ?? 'intalnet.com');
+                    }
+                    // Modify cedula if that was the issue (less likely due to prior checks but possible)
+                    elseif (str_contains($e->getMessage(), 'users_cedula_unique')) {
+                        $data['cedula'] = $data['cedula'] . '-' . rand(100, 999);
+                    } else {
+                        throw $e; // Re-throw if it's another unique constraint or unknown
+                    }
+                } else {
+                    throw $e; // Re-throw non-duplicate errors
+                }
+            }
+        }
+
+        if ($user) {
+            $user->assignRole('cliente');
+        } else {
+            // Log failure after max attempts
+            Log::error("Failed to create user after {$maxAttempts} attempts due to unique constraints: " . json_encode($data));
+        }
     }
 
     public function chunkSize(): int
