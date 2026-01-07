@@ -176,6 +176,7 @@ class OrderController extends Controller
         $validated = $request->validate([
             'celular' => 'nullable|string|max:20',
             'observaciones' => 'nullable|string',
+            'solucion_tecnico' => 'nullable|string', // Added validation
             'firma_tecnico' => 'required',
             'firma_suscriptor' => 'required',
             'articulos' => 'nullable|array',
@@ -193,6 +194,7 @@ class OrderController extends Controller
                 // Keep other fields
                 'telefono' => $validated['celular'] ?? $orden->telefono,
                 'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
+                'solucion_tecnico' => $validated['solucion_tecnico'] ?? $orden->solucion_tecnico, // Added update
                 'firma_tecnico' => $validated['firma_tecnico'],
                 'firma_suscriptor' => $validated['firma_suscriptor'],
                 'articulos' => isset($validated['articulos']) ? json_encode($validated['articulos']) : $orden->articulos,
