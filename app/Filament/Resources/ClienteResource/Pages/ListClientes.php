@@ -27,13 +27,15 @@ class ListClientes extends ListRecords
                     \Filament\Forms\Components\Placeholder::make('loading')
                         ->label('')
                         ->content(new \Illuminate\Support\HtmlString('
-                            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200" wire:loading wire:target="callMountedAction">
+                            <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300" wire:loading wire:target="callMountedAction">
                                 <div class="flex flex-col items-center justify-center gap-3">
-                                    <div class="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700 overflow-hidden relative">
-                                        <div class="bg-primary-600 h-4 rounded-full absolute top-0 left-0 w-full animate-pulse"></div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden relative">
+                                        <div class="bg-primary-600 dark:bg-primary-500 h-4 rounded-full absolute top-0 left-0 w-full animate-pulse"></div>
                                         <div class="absolute top-0 left-0 w-full h-full bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:1rem_1rem] animate-[spin_1s_linear_infinite]"></div> 
                                     </div>
-                                    <span class="text-sm font-medium text-gray-600 animate-pulse">Importando clientes, esto puede tardar un momento...</span>
+                                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300 animate-pulse">
+                                        Importando clientes, esto puede tardar un momento...
+                                    </span>
                                 </div>
                             </div>
                         ')),
