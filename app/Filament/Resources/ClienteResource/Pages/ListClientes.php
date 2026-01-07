@@ -27,13 +27,13 @@ class ListClientes extends ListRecords
                     \Filament\Forms\Components\Placeholder::make('loading')
                         ->label('')
                         ->content(new \Illuminate\Support\HtmlString('
-                            <div class="text-center" wire:loading wire:target="callMountedAction">
-                                <div class="flex items-center justify-center gap-2 text-primary-600">
-                                    <svg class="animate-spin h-5 w-5 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    <span class="font-medium">Procesando archivo... Espere por favor.</span>
+                            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200" wire:loading wire:target="callMountedAction">
+                                <div class="flex flex-col items-center justify-center gap-3">
+                                    <div class="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700 overflow-hidden relative">
+                                        <div class="bg-primary-600 h-4 rounded-full absolute top-0 left-0 w-full animate-pulse"></div>
+                                        <div class="absolute top-0 left-0 w-full h-full bg-[linear-gradient(45deg,rgba(255,255,255,0.2)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.2)_50%,rgba(255,255,255,0.2)_75%,transparent_75%,transparent)] bg-[length:1rem_1rem] animate-[spin_1s_linear_infinite]"></div> 
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-600 animate-pulse">Importando clientes, esto puede tardar un momento...</span>
                                 </div>
                             </div>
                         ')),
