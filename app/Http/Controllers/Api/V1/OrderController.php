@@ -20,9 +20,10 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        
+
         // Empezamos la consulta
-        $query = Orden::where('technician_id', $user->id);
+        // Empezamos la consulta
+        $query = Orden::with('cliente')->where('technician_id', $user->id);
 
         // Aplicamos el filtro de estado si viene en la petición
         if ($request->has('status') && $request->status !== 'todas') {
@@ -34,9 +35,9 @@ class OrderController extends Controller
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('numero_orden', 'like', "%{$searchTerm}%")
-                  ->orWhere('nombre_cliente', 'like', "%{$searchTerm}%")
-                  ->orWhere('direccion', 'like', "%{$searchTerm}%")
-                  ->orWhere('cedula', 'like', "%{$searchTerm}%");
+                    ->orWhere('nombre_cliente', 'like', "%{$searchTerm}%")
+                    ->orWhere('direccion', 'like', "%{$searchTerm}%")
+                    ->orWhere('cedula', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -66,7 +67,7 @@ class OrderController extends Controller
      */
     public function acceptOrder(Request $request, Orden $orden)
     {
-        $orden->refresh(); 
+        $orden->refresh();
         $user = $request->user();
 
         if ($orden->technician_id !== $user->id) {
@@ -97,7 +98,7 @@ class OrderController extends Controller
                 'fecha_inicio_atencion' => now(),
                 'updated_at' => now(),
             ]);
-        
+
         $orden->refresh();
 
         return response()->json([
@@ -126,7 +127,7 @@ class OrderController extends Controller
         }
 
         if ($estado !== 'en_proceso') {
-             return response()->json([
+            return response()->json([
                 'message' => "No se puede reportar en sitio. Estado actual: '$estado'. Se esperaba: 'en_proceso'."
             ], 422);
         }
@@ -160,7 +161,7 @@ class OrderController extends Controller
 
         // Idempotencia
         if ($estado === 'ejecutada') {
-             return response()->json([
+            return response()->json([
                 'message' => 'Orden ya fue ejecutada.',
                 'order' => $orden
             ]);
@@ -171,7 +172,7 @@ class OrderController extends Controller
                 'message' => "No se puede finalizar la orden. Estado actual: '$estado'. Se esperaba: 'en_sitio'."
             ], 422);
         }
-        
+
         $validated = $request->validate([
             'celular' => 'nullable|string|max:20',
             'observaciones' => 'nullable|string',
@@ -194,7 +195,7 @@ class OrderController extends Controller
                 'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
                 'firma_tecnico' => $validated['firma_tecnico'],
                 'firma_suscriptor' => $validated['firma_suscriptor'],
-                'articulos' => isset($validated['articulos']) ? json_encode($validated['articulos']) : $orden->articulos, 
+                'articulos' => isset($validated['articulos']) ? json_encode($validated['articulos']) : $orden->articulos,
                 'mac_router' => $validated['mac_router'] ?? $orden->mac_router,
                 'mac_bridge' => $validated['mac_bridge'] ?? $orden->mac_bridge,
                 'mac_ont' => $validated['mac_ont'] ?? $orden->mac_ont,
@@ -209,7 +210,7 @@ class OrderController extends Controller
             'order' => $orden
         ]);
     }
-    
+
     /**
      * Permite al técnico rechazar una orden y notifica directamente a los administradores/operadores.
      */
@@ -231,7 +232,7 @@ class OrderController extends Controller
         $orden->save();
 
         // --- Lógica de Notificación Directa ---
-        
+
         $recipients = User::role(['administrador', 'operador'])->get();
 
         $notification = FilamentNotification::make()
@@ -248,7 +249,7 @@ class OrderController extends Controller
         foreach ($recipients as $recipient) {
             $notification->sendToDatabase($recipient);
         }
-        
+
         return response()->json(['message' => 'Orden rechazada correctamente.']);
     }
     public function updateDetails(Request $request, Orden $orden)
@@ -332,23 +333,27 @@ class OrderController extends Controller
     public function getRankings(Request $request)
     {
         // Ranking Diario
-        $daily = User::whereHas('roles', fn ($q) => $q->where('name', 'tecnico'))
-            ->withCount(['ordenes as count' => function ($query) {
-                $query->where('estado_orden', 'ejecutada')
-                      ->whereDate('fecha_fin_atencion', today());
-            }])
+        $daily = User::whereHas('roles', fn($q) => $q->where('name', 'tecnico'))
+            ->withCount([
+                'ordenes as count' => function ($query) {
+                    $query->where('estado_orden', 'ejecutada')
+                        ->whereDate('fecha_fin_atencion', today());
+                }
+            ])
             ->orderByDesc('count')
             ->take(10)
             ->get()
             ->map(fn($user) => ['name' => $user->name, 'count' => $user->count]);
 
         // Ranking Mensual
-        $monthly = User::whereHas('roles', fn ($q) => $q->where('name', 'tecnico'))
-            ->withCount(['ordenes as count' => function ($query) {
-                $query->where('estado_orden', 'ejecutada')
-                      ->whereMonth('fecha_fin_atencion', now()->month)
-                      ->whereYear('fecha_fin_atencion', now()->year);
-            }])
+        $monthly = User::whereHas('roles', fn($q) => $q->where('name', 'tecnico'))
+            ->withCount([
+                'ordenes as count' => function ($query) {
+                    $query->where('estado_orden', 'ejecutada')
+                        ->whereMonth('fecha_fin_atencion', now()->month)
+                        ->whereYear('fecha_fin_atencion', now()->year);
+                }
+            ])
             ->orderByDesc('count')
             ->take(10)
             ->get()
