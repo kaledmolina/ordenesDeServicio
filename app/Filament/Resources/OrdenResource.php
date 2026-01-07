@@ -109,10 +109,7 @@ class OrdenResource extends Resource
                     ->schema([
                         Select::make('tipo_orden')
                             ->label('TIPO ORDEN')
-                            ->options([
-                                '025' => '025 REVISION TECNICA',
-                                '037' => '037 CAMBIO CONTRASEÑA',
-                            ])
+                            ->options(Orden::TIPO_ORDEN_OPTIONS)
                             ->live()
                             ->searchable(),
                         Select::make('tipo_funcion')
@@ -181,22 +178,7 @@ class OrdenResource extends Resource
                         Select::make('solicitud_suscriptor')
                             ->label('SOLICITUD SUSCRIPTOR (Reporte)')
                             ->visible(fn(\Filament\Forms\Get $get) => $get('tipo_orden') === '025')
-                            ->options([
-                                '1' => '1 SERVICIO INTERMITENTE',
-                                '2' => '2 SIN SERVICIO DE INTERNET',
-                                '3' => '3 SIN ALCANCE POTENCIA',
-                                '4' => '4 SERVICIO LENTO',
-                                '5' => '5 SIN SERVICIO DE TELEVISION',
-                                '132' => '132 CAMBIO DE CUENTA EN WIM',
-                                '133' => '133 CAMBIO DE EQUIPO',
-                                '136' => '136 LUZ ROJA',
-                                '137' => '137 MANTENIMIENTO CORRECTIVO',
-                                '139' => '139 INSTALACION AUTOMONITOREO',
-                                '140' => '140 REVISION TCA AUTOMONITOREO',
-                                '142' => '142 GARANTIA INTERNET',
-                                '143' => '143 GARANTIA TV',
-                                '144' => '144 GARANTIA TV E INTERNET',
-                            ])
+                            ->options(Orden::SOLICITUD_SUSCRIPTOR_OPTIONS)
                             ->searchable(),
 
                         Select::make('solucion_tecnico')
@@ -337,9 +319,11 @@ class OrdenResource extends Resource
                     ->searchable(),
                 TextColumn::make('tipo_orden')
                     ->label('Tipo Orden')
+                    ->formatStateUsing(fn($state) => Orden::TIPO_ORDEN_OPTIONS[$state] ?? $state)
                     ->searchable(),
                 TextColumn::make('solicitud_suscriptor')
                     ->label('Reporte')
+                    ->formatStateUsing(fn($state) => Orden::SOLICITUD_SUSCRIPTOR_OPTIONS[$state] ?? $state)
                     ->searchable()
                     ->wrap(),
                 BadgeColumn::make('estado_orden')
@@ -375,29 +359,11 @@ class OrdenResource extends Resource
                     ->preload(),
                 SelectFilter::make('tipo_orden')
                     ->label('Tipo de Orden')
-                    ->options([
-                        '025' => '025 REVISION TECNICA',
-                        '037' => '037 CAMBIO CONTRASEÑA',
-                    ])
+                    ->options(Orden::TIPO_ORDEN_OPTIONS)
                     ->searchable(),
                 SelectFilter::make('solicitud_suscriptor')
                     ->label('Reporte')
-                    ->options([
-                        '1' => '1 SERVICIO INTERMITENTE',
-                        '2' => '2 SIN SERVICIO DE INTERNET',
-                        '3' => '3 SIN ALCANCE POTENCIA',
-                        '4' => '4 SERVICIO LENTO',
-                        '5' => '5 SIN SERVICIO DE TELEVISION',
-                        '132' => '132 CAMBIO DE CUENTA EN WIM',
-                        '133' => '133 CAMBIO DE EQUIPO',
-                        '136' => '136 LUZ ROJA',
-                        '137' => '137 MANTENIMIENTO CORRECTIVO',
-                        '139' => '139 INSTALACION AUTOMONITOREO',
-                        '140' => '140 REVISION TCA AUTOMONITOREO',
-                        '142' => '142 GARANTIA INTERNET',
-                        '143' => '143 GARANTIA TV',
-                        '144' => '144 GARANTIA TV E INTERNET',
-                    ])
+                    ->options(Orden::SOLICITUD_SUSCRIPTOR_OPTIONS)
                     ->searchable(),
                 Filter::make('fecha_trn')
                     ->form([
