@@ -582,6 +582,20 @@ class OrdenResource extends Resource
                                     ->columnSpanFull(),
                             ])
                             ->collapsed(),
+
+                        Section::make('Diagnóstico Final')
+                            ->schema([
+                                Select::make('solucion_tecnico')
+                                    ->label('SOLUCIÓN TÉCNICO')
+                                    ->options([
+                                        '1 CAMBIO - CONECTOR' => '1 CAMBIO - CONECTOR',
+                                        '2 REINICIO EQUIPOS' => '2 REINICIO EQUIPOS',
+                                        '3 CAMBIO EQUIPO' => '3 CAMBIO EQUIPO',
+                                    ])
+                                    ->required() // Optional: make required if needed, user request implies it's a key selection
+                                    ->searchable(),
+                            ])
+                            ->collapsed(false),
                     ])
                     ->action(function (Orden $record, array $data) {
                         $record->update([
@@ -594,6 +608,7 @@ class OrdenResource extends Resource
                             'mac_bridge' => $data['mac_bridge'],
                             'mac_ont' => $data['mac_ont'],
                             'otros_equipos' => $data['otros_equipos'],
+                            'solucion_tecnico' => $data['solucion_tecnico'] ?? null,
                         ]);
 
                         // Guardar evidencias
