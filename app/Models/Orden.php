@@ -13,7 +13,7 @@ class Orden extends Model
         'cedula',
         'precinto',
         'nombre_cliente',
-        
+
         'tipo_orden',
         'tipo_funcion',
         'fecha_trn',
@@ -21,24 +21,24 @@ class Orden extends Model
         'estado_orden',
         'tipo',
         'estado_interno',
-        
+
         'direccion_asociado',
         'telefono',
         'saldo_cliente',
         'solicitado_por',
         'estado_tv',
-        
+
         'technician_id', // tecnico_principal
         'tecnico_auxiliar_id',
         'solicitud_suscriptor',
         'solucion_tecnico',
-        
+
         'valor_total',
         'observaciones',
         'articulos', // JSON Repeater
-        
+
         // 'status', REMOVED 
-        
+
         // Tracking timestamps
         'fecha_asignacion',
         'fecha_inicio_atencion',
@@ -67,6 +67,28 @@ class Orden extends Model
     ];
 
 
+
+    const TIPO_ORDEN_OPTIONS = [
+        '025' => '025 REVISION TECNICA',
+        '037' => '037 CAMBIO CONTRASEÑA',
+    ];
+
+    const SOLICITUD_SUSCRIPTOR_OPTIONS = [
+        '1' => '1 SERVICIO INTERMITENTE',
+        '2' => '2 SIN SERVICIO DE INTERNET',
+        '3' => '3 SIN ALCANCE POTENCIA',
+        '4' => '4 SERVICIO LENTO',
+        '5' => '5 SIN SERVICIO DE TELEVISION',
+        '132' => '132 CAMBIO DE CUENTA EN WIM',
+        '133' => '133 CAMBIO DE EQUIPO',
+        '136' => '136 LUZ ROJA',
+        '137' => '137 MANTENIMIENTO CORRECTIVO',
+        '139' => '139 INSTALACION AUTOMONITOREO',
+        '140' => '140 REVISION TCA AUTOMONITOREO',
+        '142' => '142 GARANTIA INTERNET',
+        '143' => '143 GARANTIA TV',
+        '144' => '144 GARANTIA TV E INTERNET',
+    ];
 
     const ESTADO_PENDIENTE = 'pendiente';
     const ESTADO_ASIGNADA = 'asignada';
