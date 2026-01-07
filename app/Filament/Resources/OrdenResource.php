@@ -408,6 +408,30 @@ class OrdenResource extends Resource
                             ->success()
                             ->send();
                     }),
+                Action::make('cambiarTecnico')
+                    ->label('Cambiar Técnico')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->visible(fn(Orden $record) => $record->estado_orden === Orden::ESTADO_ASIGNADA && Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->form([
+                        Select::make('technician_id')
+                            ->label('Nuevo Técnico')
+                            ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                    ])
+                    ->action(function (Orden $record, array $data) {
+                        $record->update([
+                            'technician_id' => $data['technician_id'],
+                            'fecha_asignacion' => now(),
+                        ]);
+
+                        Notification::make()
+                            ->title('Técnico cambiado correctamente')
+                            ->success()
+                            ->send();
+                    }),
                 ActionGroup::make([
                     // Tables\Actions\ViewAction::make(),
                     Action::make('view')
