@@ -202,8 +202,8 @@ class ListClientes extends ListRecords
                                 <!-- Game View -->
                                 <div x-show="showGame" style="display: none;" class="flex flex-col items-center w-full">
                                     <div class="flex justify-between w-full max-w-[400px] mb-2 px-2">
-                                        <button @click="toggleMode()" class="text-xs px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded hover:bg-gray-300 dark:hover:bg-gray-700 transition font-bold" x-text="mode === \'cpu\' ? \'👥 2 Players\' : \'💻 vs CPU\'"></button>
-                                        <button @click="stopGame()" class="text-xs px-3 py-1 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-800 transition font-bold">✕ Exit</button>
+                                        <button type="button" @click.prevent="toggleMode()" class="text-xs px-3 py-1 bg-gray-200 dark:bg-gray-800 rounded hover:bg-gray-300 dark:hover:bg-gray-700 transition font-bold" x-text="mode === \'cpu\' ? \'👥 2 Players\' : \'💻 vs CPU\'"></button>
+                                        <button type="button" @click.prevent="stopGame()" class="text-xs px-3 py-1 bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-800 transition font-bold">✕ Exit</button>
                                     </div>
                                     
                                     <canvas x-ref="gameCanvas" width="400" height="250" class="bg-black rounded shadow-lg border border-gray-600 cursor-none"></canvas>
