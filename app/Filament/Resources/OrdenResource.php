@@ -327,17 +327,21 @@ class OrdenResource extends Resource
                     ->searchable()
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab(),
-                TextColumn::make('technician.name')
-                    ->label('Técnico')
+                TextColumn::make('cliente.name')
+                    ->label('Cliente')
                     ->searchable()
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab(),
-                TextColumn::make('fecha_trn')
-                    ->label('Fecha')
-                    ->date('d/m/Y')
-                    ->sortable()
-                    ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
-                    ->openUrlInNewTab(),
+                TextColumn::make('cliente.barrio')
+                    ->label('Barrio')
+                    ->searchable(),
+                TextColumn::make('tipo_orden')
+                    ->label('Tipo Orden')
+                    ->searchable(),
+                TextColumn::make('solicitud_suscriptor')
+                    ->label('Reporte')
+                    ->searchable()
+                    ->wrap(),
                 BadgeColumn::make('estado_orden')
                     ->label('Estado')
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
@@ -413,6 +417,31 @@ class OrdenResource extends Resource
                     }),
             ])
             ->actions([
+                Action::make('asignarTecnico')
+                    ->label('Asignar Técnico')
+                    ->icon('heroicon-o-user-plus')
+                    ->color('warning')
+                    ->visible(fn(Orden $record) => ($record->estado_orden === Orden::ESTADO_PENDIENTE || is_null($record->technician_id)) && Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->form([
+                        Select::make('technician_id')
+                            ->label('Técnico')
+                            ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                    ])
+                    ->action(function (Orden $record, array $data) {
+                        $record->update([
+                            'technician_id' => $data['technician_id'],
+                            'estado_orden' => Orden::ESTADO_ASIGNADA,
+                            'fecha_asignacion' => now(),
+                        ]);
+
+                        Notification::make()
+                            ->title('Técnico asignado correctamente')
+                            ->success()
+                            ->send();
+                    }),
                 ActionGroup::make([
                     // Tables\Actions\ViewAction::make(),
                     Action::make('view')
