@@ -38,13 +38,19 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
     {
         return [
             AfterImport::class => function (AfterImport $event) {
+                $key = 'import_progress_' . $this->importedBy->id;
+                $stats = \Illuminate\Support\Facades\Cache::get($key);
+
+                $created = $stats['created'] ?? 0;
+                $skipped = $stats['skipped'] ?? 0;
+
                 Notification::make()
                     ->title('Importación finalizada')
-                    ->body('La carga de clientes en segundo plano ha terminado.')
+                    ->body("La carga de clientes ha terminado.\n\n✅ Creados: {$created}\n⚠️ Omitidos: {$skipped}")
                     ->success()
                     ->sendToDatabase($this->importedBy);
 
-                \Illuminate\Support\Facades\Cache::forget('import_progress_' . $this->importedBy->id);
+                \Illuminate\Support\Facades\Cache::forget($key);
             },
             \Maatwebsite\Excel\Events\BeforeImport::class => function (\Maatwebsite\Excel\Events\BeforeImport $event) {
                 $totalRows = $event->getReader()->getTotalRows(); // Returns array ['Worksheet' => count]
@@ -53,6 +59,8 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                 \Illuminate\Support\Facades\Cache::put('import_progress_' . $this->importedBy->id, [
                     'total' => $total,
                     'processed' => 0,
+                    'created' => 0,
+                    'skipped' => 0,
                     'status' => 'running'
                 ], 3600);
             }
@@ -70,7 +78,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
             return; // Abort processing this chunk
         }
 
-        // Update progress in cache
+        // Update progress in cache (increment processed count)
         $key = 'import_progress_' . $this->importedBy->id;
         $current = \Illuminate\Support\Facades\Cache::get($key);
 
@@ -138,6 +146,10 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
         // Track emails seen in this chunk to prevent collisions within the file
         $chunkSeenEmails = [];
 
+        // Track local stats
+        $chunkCreated = 0;
+        $chunkSkipped = 0;
+
         // 3. Process rows
         foreach ($rows as $row) {
             // Strict check for critical columns (only needed once effectively, but good for validation)
@@ -158,6 +170,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
             // Check duplicate in FILE (Global memory) - ONLY CODIGO
             if ($codigo && isset($this->seenCodigos[$codigo])) {
                 $this->skipped++;
+                $chunkSkipped++;
                 continue;
             }
 
@@ -166,6 +179,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
 
             if ($existsInDb) {
                 $this->skipped++;
+                $chunkSkipped++;
                 // Mark as seen so we don't process it again if repeated in file
                 if ($codigo)
                     $this->seenCodigos[$codigo] = true;
@@ -200,12 +214,14 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                     } else {
                         // Max 2 reached for whitelisted user
                         $this->skipped++;
+                        $chunkSkipped++;
                         \Illuminate\Support\Facades\Log::info("Skipping client {$cedula} - Whitelisted Max 2 reached.");
                         continue;
                     }
                 } else {
                     // Not in whitelist - Strict NO DUPLICATE
                     $this->skipped++;
+                    $chunkSkipped++;
                     \Illuminate\Support\Facades\Log::info("Skipping client {$cedula} - Duplicate not allowed.");
                     continue;
                 }
@@ -246,6 +262,15 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
             // CREATE USER
             $this->createUser($row, $cedula, $codigo, $email);
             $this->created++;
+            $chunkCreated++;
+        }
+
+        // Update Stats in Cache
+        $current = \Illuminate\Support\Facades\Cache::get($key);
+        if ($current) {
+            $current['created'] = ($current['created'] ?? 0) + $chunkCreated;
+            $current['skipped'] = ($current['skipped'] ?? 0) + $chunkSkipped;
+            \Illuminate\Support\Facades\Cache::put($key, $current, 3600);
         }
     }
 
