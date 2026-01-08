@@ -29,7 +29,7 @@ class ClienteResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $navigationGroup = 'Gestión de Órdenes';
     protected static ?int $navigationSort = 2;
-    
+
     protected static ?string $slug = 'clientes';
 
     public static function getEloquentQuery(): Builder
@@ -59,15 +59,15 @@ class ClienteResource extends Resource
                                         if (blank($state)) {
                                             return;
                                         }
-                                        
+
                                         $service = new \App\Services\ClientLookupService();
                                         $data = $service->search($state);
-                                        
+
                                         if ($data) {
                                             foreach ($data as $key => $value) {
                                                 $set($key, $value);
                                             }
-                                            
+
                                             \Filament\Notifications\Notification::make()
                                                 ->title('Cliente encontrado')
                                                 ->body('Datos cargados exitosamente.')
@@ -157,9 +157,9 @@ class ClienteResource extends Resource
                         TextInput::make('password')
                             ->label('Contraseña')
                             ->password()
-                            ->dehydrateStateUsing(fn (string $state): string => Hash::make($state))
-                            ->dehydrated(fn (?string $state): bool => filled($state))
-                            ->required(fn (string $operation): bool => $operation === 'create'),
+                            ->dehydrateStateUsing(fn(string $state): string => Hash::make($state))
+                            ->dehydrated(fn(?string $state): bool => filled($state))
+                            ->required(fn(string $operation): bool => $operation === 'create'),
                         Toggle::make('is_active')->label('Usuario Activo')->default(true),
                     ])->columns(1),
             ]);
@@ -186,9 +186,10 @@ class ClienteResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->paginated([10, 25, 50, 100]);
     }
-    
+
     public static function getPages(): array
     {
         return [

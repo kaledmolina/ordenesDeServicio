@@ -40,7 +40,7 @@ class UserResource extends Resource
                     ->schema([
                         TextInput::make('name')->label('Nombre')->required(),
                         TextInput::make('email')->label('Correo Electrónico')->email()->required()->unique(ignoreRecord: true),
-                        TextInput::make('password')->label('Contraseña')->password()->dehydrateStateUsing(fn (string $state): string => Hash::make($state))->dehydrated(fn (?string $state): bool => filled($state))->required(fn (string $operation): bool => $operation === 'create'),
+                        TextInput::make('password')->label('Contraseña')->password()->dehydrateStateUsing(fn(string $state): string => Hash::make($state))->dehydrated(fn(?string $state): bool => filled($state))->required(fn(string $operation): bool => $operation === 'create'),
                         TextInput::make('telefono')->label('Teléfono')->tel(),
                         TextInput::make('direccion')->label('Dirección'),
 
@@ -84,9 +84,10 @@ class UserResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->paginated([10, 25, 50]);
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -94,5 +95,5 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
-    }    
+    }
 }
