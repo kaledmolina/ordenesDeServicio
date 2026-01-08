@@ -177,16 +177,36 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
             $cedulaExists = $cedula && (isset($this->seenCedulas[$cedula]) || isset($existingMap['cedula_' . $cedula]));
 
             if ($cedulaExists) {
-                $duplicateCedula = $cedula . '-2';
-                $isDuplicateTaken = isset($this->seenCedulas[$duplicateCedula]) || isset($existingMap['cedula_' . $duplicateCedula]);
+                // WHITELIST: Only these cedulas are allowed to have a duplicate (-2)
+                $allowedDuplicates = [
+                    '50897298',
+                    '35870738',
+                    '1067905122',
+                    '1067836208',
+                    '10820244',
+                    '1067885336',
+                    '1100692807',
+                    '1067928041',
+                    '1067899610',
+                    '1003233824'
+                ];
 
-                if (!$isDuplicateTaken) {
-                    // Use the allowable duplicate
-                    $cedula = $duplicateCedula;
+                if (in_array($cedula, $allowedDuplicates)) {
+                    $duplicateCedula = $cedula . '-2';
+                    $isDuplicateTaken = isset($this->seenCedulas[$duplicateCedula]) || isset($existingMap['cedula_' . $duplicateCedula]);
+
+                    if (!$isDuplicateTaken) {
+                        $cedula = $duplicateCedula;
+                    } else {
+                        // Max 2 reached for whitelisted user
+                        $this->skipped++;
+                        \Illuminate\Support\Facades\Log::info("Skipping client {$cedula} - Whitelisted Max 2 reached.");
+                        continue;
+                    }
                 } else {
-                    // Both Original and Duplicate taken. Skip.
+                    // Not in whitelist - Strict NO DUPLICATE
                     $this->skipped++;
-                    \Illuminate\Support\Facades\Log::info("Skipping client {$cedula} - Max duplicates (2) reached.");
+                    \Illuminate\Support\Facades\Log::info("Skipping client {$cedula} - Duplicate not allowed.");
                     continue;
                 }
             }
