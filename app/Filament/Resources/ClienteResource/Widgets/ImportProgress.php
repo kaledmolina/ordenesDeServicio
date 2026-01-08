@@ -40,4 +40,20 @@ class ImportProgress extends Widget
             $this->progress = 0;
         }
     }
+
+    public function cancelImport()
+    {
+        $userId = auth()->id();
+        // Set flag for the job to stop
+        Cache::put('import_cancelled_' . $userId, true, 60);
+
+        // Clear progress immediately to hide UI
+        Cache::forget('import_progress_' . $userId);
+        $this->updateProgress();
+
+        \Filament\Notifications\Notification::make()
+            ->title('Importación cancelada')
+            ->warning()
+            ->send();
+    }
 }

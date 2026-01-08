@@ -19,6 +19,7 @@ class ListClientes extends ListRecords
                 ->modalDescription('El proceso puede tardar varios minutos dependiendo del tamaño del archivo. Por favor, no cierre la ventana.')
                 ->modalCloseButton(false)
                 ->closeModalByClickingAway(false)
+                ->disabled(fn() => \Illuminate\Support\Facades\Cache::has('import_progress_' . auth()->id()))
                 ->form([
                     \Filament\Forms\Components\FileUpload::make('archivo_excel')
                         ->label('Archivo Excel (.xlsx)')

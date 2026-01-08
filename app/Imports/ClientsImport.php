@@ -63,6 +63,12 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
 
     public function collection(Collection $rows)
     {
+        // 0. Check cancellation
+        if (\Illuminate\Support\Facades\Cache::has('import_cancelled_' . $this->importedBy->id)) {
+            \Illuminate\Support\Facades\Cache::forget('import_progress_' . $this->importedBy->id);
+            return; // Abort processing this chunk
+        }
+
         // Update progress in cache
         $key = 'import_progress_' . $this->importedBy->id;
         $current = \Illuminate\Support\Facades\Cache::get($key);

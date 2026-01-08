@@ -3,8 +3,13 @@
         @if($status === 'running')
             <x-filament::card>
                 <div class="space-y-2">
-                    <div class="flex justify-between text-sm font-medium">
-                        <span>Importando clientes...</span>
+                    <div class="flex justify-between items-center text-sm font-medium">
+                        <div class="flex items-center gap-2">
+                            <span>Importando clientes...</span>
+                            <x-filament::button color="danger" wire:click="cancelImport" size="xs" tooltip="Cancelar importación">
+                                ✕
+                            </x-filament::button>
+                        </div>
                         <span>{{ $progress }}%</span>
                     </div>
 
