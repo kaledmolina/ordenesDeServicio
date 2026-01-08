@@ -26,6 +26,8 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
 
     private $created = 0;
     private $skipped = 0;
+    private $seenCedulas = [];
+    private $seenCodigos = [];
 
     public function __construct(
         protected User $importedBy
@@ -41,19 +43,34 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                     ->body('La carga de clientes en segundo plano ha terminado.')
                     ->success()
                     ->sendToDatabase($this->importedBy);
+
+                \Illuminate\Support\Facades\Cache::forget('import_progress_' . $this->importedBy->id);
             },
+            \Maatwebsite\Excel\Events\BeforeImport::class => function (\Maatwebsite\Excel\Events\BeforeImport $event) {
+                $totalRows = $event->getReader()->getTotalRows(); // Returns array ['Worksheet' => count]
+                $total = reset($totalRows) - 1; // Subtract header
+    
+                \Illuminate\Support\Facades\Cache::put('import_progress_' . $this->importedBy->id, [
+                    'total' => $total,
+                    'processed' => 0,
+                    'status' => 'running'
+                ], 3600);
+            }
         ];
     }
 
-    // We don't strictly need persistent seen arrays for uniqueness check across chunks 
-    // IF we trust the DB check. However, within a single file upload session, 
-    // tracking seen items in memory helps avoid duplicates INSIDE the file.
-    // For 50k rows, arrays are manageable.
-    private $seenCedulas = [];
-    private $seenCodigos = [];
+    // ... (previous code) ...
 
     public function collection(Collection $rows)
     {
+        // Update progress in cache
+        $key = 'import_progress_' . $this->importedBy->id;
+        $current = \Illuminate\Support\Facades\Cache::get($key);
+        if ($current) {
+            $current['processed'] += $rows->count();
+            \Illuminate\Support\Facades\Cache::put($key, $current, 3600);
+        }
+
         // 1. Gather all potential identifiers from this chunk to query DB once
         $cedulasToSearch = [];
         $codigosToSearch = [];

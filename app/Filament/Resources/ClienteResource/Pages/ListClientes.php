@@ -231,4 +231,11 @@ class ListClientes extends ListRecords
             \Filament\Actions\CreateAction::make(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Resources\ClienteResource\Widgets\ImportProgress::class,
+        ];
+    }
 }
