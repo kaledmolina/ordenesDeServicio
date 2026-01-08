@@ -74,16 +74,9 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
         $key = 'import_progress_' . $this->importedBy->id;
         $current = \Illuminate\Support\Facades\Cache::get($key);
 
-        // DEBUG LOG
-        \Illuminate\Support\Facades\Log::info("Import Debug: Key={$key}, Rows={$rows->count()}, CacheFound=" . ($current ? 'Yes' : 'No'));
-
         if ($current) {
             $current['processed'] += $rows->count();
             \Illuminate\Support\Facades\Cache::put($key, $current, 3600);
-            // DEBUG LOG
-            \Illuminate\Support\Facades\Log::info("Import Debug: Updated progress to {$current['processed']}");
-        } else {
-            \Illuminate\Support\Facades\Log::warning("Import Debug: Cache key not found inside loop!");
         }
 
         // 1. Gather all potential identifiers from this chunk to query DB once
