@@ -65,6 +65,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
     {
         // 0. Check cancellation
         if (\Illuminate\Support\Facades\Cache::has('import_cancelled_' . $this->importedBy->id)) {
+            \Illuminate\Support\Facades\Log::info("Skipping import chunk for user {$this->importedBy->id} due to cancellation.");
             \Illuminate\Support\Facades\Cache::forget('import_progress_' . $this->importedBy->id);
             return; // Abort processing this chunk
         }

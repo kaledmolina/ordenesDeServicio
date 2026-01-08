@@ -45,7 +45,7 @@ class ImportProgress extends Widget
     {
         $userId = auth()->id();
         // Set flag for the job to stop
-        Cache::put('import_cancelled_' . $userId, true, 60);
+        Cache::put('import_cancelled_' . $userId, true, 3600); // 1 hour to ensure all queued jobs catch it
 
         // Clear progress immediately to hide UI
         Cache::forget('import_progress_' . $userId);
