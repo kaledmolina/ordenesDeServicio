@@ -88,8 +88,11 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
             $codigo = $row['codigo'] ?? $row['codigo_cliente'] ?? $row['codigo_de_contrato'] ?? null;
             $email = isset($row['correo']) ? strtolower(trim($row['correo'])) : null;
 
-            if ($cedula)
+            if ($cedula) {
                 $cedulasToSearch[] = $cedula;
+                // Also check for the "allowed duplicate" version
+                $cedulasToSearch[] = $cedula . '-2';
+            }
             if ($codigo)
                 $codigosToSearch[] = $codigo;
             if ($email)
@@ -168,10 +171,23 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                 continue;
             }
 
-            // Handle Cedula Uniqueness (Modify if exists)
-            if ($cedula && (isset($this->seenCedulas[$cedula]) || isset($existingMap['cedula_' . $cedula]))) {
-                // Cedula collision! Append suffix
-                $cedula = $cedula . '-' . rand(1000, 9999);
+            // Handle Cedula Uniqueness
+            // Strategy: Allow distinct '123' and '123-2'. Rejects execution if both exist -> Max 2.
+            $cedulaExists = $cedula && (isset($this->seenCedulas[$cedula]) || isset($existingMap['cedula_' . $cedula]));
+
+            if ($cedulaExists) {
+                $duplicateCedula = $cedula . '-2';
+                $isDuplicateTaken = isset($this->seenCedulas[$duplicateCedula]) || isset($existingMap['cedula_' . $duplicateCedula]);
+
+                if (!$isDuplicateTaken) {
+                    // Use the allowable duplicate
+                    $cedula = $duplicateCedula;
+                } else {
+                    // Both Original and Duplicate taken. Skip.
+                    $this->skipped++;
+                    \Illuminate\Support\Facades\Log::info("Skipping client {$cedula} - Max duplicates (2) reached.");
+                    continue;
+                }
             }
 
             // Mark as seen
