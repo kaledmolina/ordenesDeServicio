@@ -56,6 +56,8 @@ class OrderController extends Controller
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
+        $orden->load('cliente');
+
         return response()->json($orden);
     }
 
