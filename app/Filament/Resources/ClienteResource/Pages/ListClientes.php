@@ -220,6 +220,11 @@ class ListClientes extends ListRecords
                 ->action(function (array $data) {
                     // set_time_limit(600); // Removed, using queue
                     $filePath = \Illuminate\Support\Facades\Storage::disk('public')->path($data['archivo_excel']);
+
+                    // Clear any previous cancellation flags or progress
+                    \Illuminate\Support\Facades\Cache::forget('import_cancelled_' . auth()->id());
+                    \Illuminate\Support\Facades\Cache::forget('import_progress_' . auth()->id());
+
                     $import = new \App\Imports\ClientsImport(auth()->user());
                     \Maatwebsite\Excel\Facades\Excel::queueImport($import, $filePath);
 
