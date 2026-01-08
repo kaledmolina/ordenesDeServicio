@@ -219,7 +219,7 @@ class ListClientes extends ListRecords
                 ->action(function (array $data) {
                     // set_time_limit(600); // Removed, using queue
                     $filePath = \Illuminate\Support\Facades\Storage::disk('public')->path($data['archivo_excel']);
-                    $import = new \App\Imports\ClientsImport;
+                    $import = new \App\Imports\ClientsImport(auth()->user());
                     \Maatwebsite\Excel\Facades\Excel::queueImport($import, $filePath);
 
                     \Filament\Notifications\Notification::make()

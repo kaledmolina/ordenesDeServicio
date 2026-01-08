@@ -15,12 +15,35 @@ use Illuminate\Database\QueryException;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Bus\Queueable;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterImport;
+use Filament\Notifications\Notification;
 
-class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, ShouldQueue
+
+class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, ShouldQueue, WithEvents
 {
     use Queueable;
+
     private $created = 0;
     private $skipped = 0;
+
+    public function __construct(
+        protected User $importedBy
+    ) {
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterImport::class => function (AfterImport $event) {
+                Notification::make()
+                    ->title('Importación finalizada')
+                    ->body('La carga de clientes en segundo plano ha terminado.')
+                    ->success()
+                    ->sendToDatabase($this->importedBy);
+            },
+        ];
+    }
 
     // We don't strictly need persistent seen arrays for uniqueness check across chunks 
     // IF we trust the DB check. However, within a single file upload session, 
