@@ -217,17 +217,14 @@ class ListClientes extends ListRecords
                         ')),
                 ])
                 ->action(function (array $data) {
-                    set_time_limit(600); // 10 minutes for large files
+                    // set_time_limit(600); // Removed, using queue
                     $filePath = \Illuminate\Support\Facades\Storage::disk('public')->path($data['archivo_excel']);
                     $import = new \App\Imports\ClientsImport;
-                    \Maatwebsite\Excel\Facades\Excel::import($import, $filePath);
-
-                    $created = $import->getCreatedCount();
-                    $skipped = $import->getSkippedCount();
+                    \Maatwebsite\Excel\Facades\Excel::queueImport($import, $filePath);
 
                     \Filament\Notifications\Notification::make()
-                        ->title('Importación completada')
-                        ->body("Se omitieron {$skipped} clientes por que ya estan registrados y se guardaron {$created} nuevos")
+                        ->title('Importación iniciada')
+                        ->body("La importación de clientes ha comenzado en segundo plano. Recibirá una notificación cuando termine (si está configurado).")
                         ->success()
                         ->send();
                 }),

@@ -13,8 +13,12 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 
-class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Bus\Queueable;
+
+class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, ShouldQueue
 {
+    use Queueable;
     private $created = 0;
     private $skipped = 0;
 
@@ -218,7 +222,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading
         if (strlen($passBase) > 30) {
             $passBase = substr($passBase, 0, 30);
         }
-        $data['password'] = Hash::make($passBase);
+        $data['password'] = $passBase; // REMOVED Hash::make, handled by model cast
         $data['created_at'] = now();
 
         // Try to create user with retry logic for unique constraint violations
