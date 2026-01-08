@@ -54,7 +54,7 @@ class AdminPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#10447E'),
             ])
             ->brandLogo(asset('logo.png'))
             ->brandLogoHeight('3rem')
