@@ -96,6 +96,16 @@ class OrdenResource extends Resource
                             ->validationMessages([
                                 'unique' => 'Este cliente ya tiene una orden activa. Debe cerrar la anterior para crear una nueva.',
                             ])
+                            ->rules([
+                                function () {
+                                    return function (string $attribute, $value, \Closure $fail) {
+                                        $user = User::find($value);
+                                        if ($user && $user->estado_internet === 'R') {
+                                            $fail('No se pueden crear órdenes para clientes con Estado Internet "R".');
+                                        }
+                                    };
+                                },
+                            ])
                             ->columnSpan(2),
                         Hidden::make('nombre_cliente'),
                         TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
