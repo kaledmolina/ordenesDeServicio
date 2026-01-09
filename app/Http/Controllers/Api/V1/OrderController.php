@@ -374,40 +374,62 @@ class OrderController extends Controller
     }
 
     /**
-     * Devuelve el ranking de técnicos (diario y mensual).
+     * Devuelve las órdenes pendientes sin asignar (para que el técnico solicite).
      */
-    public function getRankings(Request $request)
+    public function getPendingOrders(Request $request)
     {
-        // Ranking Diario
-        $daily = User::whereHas('roles', fn($q) => $q->where('name', 'tecnico'))
-            ->withCount([
-                'ordenes as count' => function ($query) {
-                    $query->where('estado_orden', 'ejecutada')
-                        ->whereDate('fecha_fin_atencion', today());
-                }
-            ])
-            ->orderByDesc('count')
-            ->take(10)
-            ->get()
-            ->map(fn($user) => ['name' => $user->name, 'count' => $user->count]);
+        $query = Orden::with('cliente')
+            ->where('estado_orden', 'pendiente')
+            ->whereNull('technician_id');
 
-        // Ranking Mensual
-        $monthly = User::whereHas('roles', fn($q) => $q->where('name', 'tecnico'))
-            ->withCount([
-                'ordenes as count' => function ($query) {
-                    $query->where('estado_orden', 'ejecutada')
-                        ->whereMonth('fecha_fin_atencion', now()->month)
-                        ->whereYear('fecha_fin_atencion', now()->year);
-                }
-            ])
-            ->orderByDesc('count')
-            ->take(10)
-            ->get()
-            ->map(fn($user) => ['name' => $user->name, 'count' => $user->count]);
+        // Filtros (Clasificación, Tipo)
+        if ($request->has('clasificacion') && $request->clasificacion) {
+            $query->where('clasificacion', $request->clasificacion);
+        }
+        if ($request->has('tipo_orden') && $request->tipo_orden) {
+            $query->where('tipo_orden', $request->tipo_orden);
+        }
+
+        $orders = $query->latest('created_at')->paginate(20);
+
+        return response()->json($orders);
+    }
+
+    /**
+     * Permite al técnico solicitar (auto-asignarse) una orden pendiente.
+     */
+    public function claimOrder(Request $request, Orden $orden)
+    {
+        $user = $request->user();
+
+        if ($orden->technician_id !== null) {
+            return response()->json(['message' => 'Esta orden ya fue asignada a otro técnico.'], 422);
+        }
+
+        if ($orden->estado_orden !== 'pendiente') {
+            return response()->json(['message' => 'La orden no está en estado pendiente.'], 422);
+        }
+
+        $orden->update([
+            'technician_id' => $user->id,
+            'estado_orden' => 'asignada',
+            'fecha_asignacion' => now(),
+        ]);
+
+        // Notificar Admins
+        $recipients = User::role(['administrador', 'operador'])->get();
+        $notification = FilamentNotification::make()
+            ->title('Orden Asignada')
+            ->body("El técnico {$user->name} ha tomado la orden #{$orden->numero_orden} desde la App.")
+            ->info();
+
+        foreach ($recipients as $recipient) {
+            $notification->sendToDatabase($recipient);
+        }
 
         return response()->json([
-            'daily' => $daily,
-            'monthly' => $monthly,
+            'message' => 'Orden asignada correctamente.',
+            'order' => $orden
         ]);
     }
 }

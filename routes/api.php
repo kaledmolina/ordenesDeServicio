@@ -29,16 +29,17 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     // Rutas para las Órdenes
     Route::get('/orders/{orden}/photos', [OrderController::class, 'getPhotos']);
-    Route::get('/private-fotos/{ordenFoto}', [OrderController::class, 'showPhoto']); 
+    Route::get('/private-fotos/{ordenFoto}', [OrderController::class, 'showPhoto']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{orden:numero_orden}', [OrderController::class, 'show']);
     Route::post('/orders/{orden:numero_orden}/accept', [OrderController::class, 'acceptOrder']);
     Route::post('/orders/{orden:numero_orden}/report-on-site', [OrderController::class, 'reportOnSite']);
     Route::post('/orders/{orden:numero_orden}/close', [OrderController::class, 'closeOrder']);
     Route::post('/orders/{orden:numero_orden}/reject', [OrderController::class, 'rejectOrder']);
-    Route::post('/orders/{orden:numero_orden}/update-details', [OrderController::class, 'updateDetails']); 
+    Route::post('/orders/{orden:numero_orden}/update-details', [OrderController::class, 'updateDetails']);
     Route::post('/orders/{orden:numero_orden}/upload-photo', [OrderController::class, 'uploadPhoto']);
-    Route::get('/rankings', [OrderController::class, 'getRankings']);
+    Route::get('/pending-orders', [OrderController::class, 'getPendingOrders']);
+    Route::post('/orders/{orden:numero_orden}/claim', [OrderController::class, 'claimOrder']);
 
 
 
