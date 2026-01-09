@@ -197,6 +197,9 @@ class OrderController extends Controller
         if ($solucion === 'Reprogramar') {
             $nuevoEstado = 'pendiente';
             $technicianId = null;
+        } elseif ($solucion === 'Solicitar Cierre') {
+            $nuevoEstado = 'ejecutada';
+            // Technician remains assigned for historical record in 'ejecutada'
         }
 
         \Illuminate\Support\Facades\DB::table('ordens')
@@ -219,21 +222,24 @@ class OrderController extends Controller
                 'updated_at' => now(),
             ]);
 
-        // Logic for Notification if Reprogrammed
-        if ($solucion === 'Reprogramar') {
+        // Logic for Notification if Reprogrammed or Closure Requested
+        if ($solucion === 'Reprogramar' || $solucion === 'Solicitar Cierre') {
             $recipients = User::role(['administrador', 'operador'])->get();
             $motivo = $validated['observaciones'] ?? 'Sin motivo especificado';
 
+            $title = $solucion === 'Reprogramar' ? 'Orden Reprogramada' : 'Solicitud de Cierre';
+            $icon = $solucion === 'Reprogramar' ? 'heroicon-o-arrow-path-rounded-square' : 'heroicon-o-check-circle';
+            $actionText = $solucion === 'Reprogramar' ? 'reprogramó' : 'solicitó cierre para';
+
             $notification = FilamentNotification::make()
-                ->title('Orden Reprogramada')
-                ->icon('heroicon-o-arrow-path-rounded-square')
-                ->body("El técnico {$user->name} reprogramó la orden #{$orden->numero_orden}. Motivo: \"{$motivo}\". Se requiere reasignación.")
+                ->title($title)
+                ->icon($icon)
+                ->body("El técnico {$user->name} {$actionText} la orden #{$orden->numero_orden}. Motivo: \"{$motivo}\".")
                 ->actions([
                     Action::make('view')
                         ->label('Ver Orden')
                         ->url(route('filament.admin.resources.ordens.edit', ['record' => $orden])),
-                ])
-                ->warning(); // Or danger/info
+                ]);
 
             foreach ($recipients as $recipient) {
                 $notification->sendToDatabase($recipient);
