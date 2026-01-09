@@ -90,7 +90,14 @@ class OrdenesPendientes extends BaseWidget
                             ->success()
                             ->send();
 
-                        // Refresh to remove from list
+                        // Notify Admins and Operators
+                        $recipients = \App\Models\User::role(['administrador', 'operador'])->get();
+
+                        Notification::make()
+                            ->title('Orden Asignada')
+                            ->body("El técnico {$user->name} ha tomado la orden #{$record->numero_orden}")
+                            ->info()
+                            ->sendToDatabase($recipients);
                     }),
             ])
             ->paginated([5, 10, 25]);
