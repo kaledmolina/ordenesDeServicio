@@ -192,14 +192,18 @@ class OrderController extends Controller
         ]);
 
         $nuevoEstado = 'ejecutada'; // Default
+        $technicianId = $orden->technician_id;
+
         if ($solucion === 'Reprogramar') {
-            $nuevoEstado = 'asignada';
+            $nuevoEstado = 'pendiente';
+            $technicianId = null;
         }
 
         \Illuminate\Support\Facades\DB::table('ordens')
             ->where('id', $orden->id)
             ->update([
                 'estado_orden' => $nuevoEstado,
+                'technician_id' => $technicianId,
                 'fecha_fin_atencion' => now(),
                 // Keep other fields
                 'telefono' => $validated['celular'] ?? $orden->telefono,
