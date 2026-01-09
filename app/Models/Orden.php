@@ -21,6 +21,7 @@ class Orden extends Model
         'estado_orden',
         'tipo',
         'estado_interno',
+        'clasificacion',
 
         'direccion_asociado',
         'telefono',

@@ -150,6 +150,14 @@ class OrdenResource extends Resource
                             ->default(Orden::ESTADO_PENDIENTE)
                             ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                             ->dehydrated(),
+                        Select::make('clasificacion')
+                            ->label('CLASIFICACION')
+                            ->options([
+                                'rapidas' => 'Rápidas',
+                                'cuadrilla' => 'Cuadrilla',
+                            ])
+                            ->searchable()
+                            ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador'])),
                     ])->columns(4),
 
                 // SECCIÓN 3: DATOS DE CONTACTO Y ESTADO
@@ -343,6 +351,17 @@ class OrdenResource extends Resource
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: false),
+                TextColumn::make('clasificacion')
+                    ->label('Clasificación')
+                    ->badge()
+                    ->colors([
+                        'success' => 'rapidas',
+                        'warning' => 'cuadrilla',
+                    ])
+                    ->formatStateUsing(fn($state) => ucfirst($state))
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('solicitud_suscriptor')
                     ->label('Reporte')
                     ->formatStateUsing(fn($state) => Orden::SOLICITUD_SUSCRIPTOR_OPTIONS[$state] ?? $state)
@@ -377,6 +396,12 @@ class OrdenResource extends Resource
                         Orden::ESTADO_EJECUTADA => 'Ejecutada',
                         Orden::ESTADO_CERRADA => 'Cerrada',
                         Orden::ESTADO_ANULADA => 'Anulada',
+                    ]),
+                SelectFilter::make('clasificacion')
+                    ->label('Clasificación')
+                    ->options([
+                        'rapidas' => 'Rápidas',
+                        'cuadrilla' => 'Cuadrilla',
                     ]),
                 SelectFilter::make('technician_id')
                     ->label('Técnico')
