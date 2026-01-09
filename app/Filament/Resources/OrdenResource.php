@@ -375,13 +375,12 @@ class OrdenResource extends Resource
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab()
                     ->colors([
-                        'gray' => Orden::ESTADO_PENDIENTE,
+                        'gray' => [Orden::ESTADO_PENDIENTE, Orden::ESTADO_ANULADA],
                         'warning' => Orden::ESTADO_ASIGNADA,
                         'primary' => Orden::ESTADO_EN_SITIO,
                         'info' => Orden::ESTADO_EN_PROCESO,
                         'success' => Orden::ESTADO_EJECUTADA,
                         'danger' => Orden::ESTADO_CERRADA,
-                        'gray' => Orden::ESTADO_ANULADA,
                     ])
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -692,6 +691,35 @@ class OrdenResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('asignarTecnicoMasivo')
+                        ->label('Asignar Técnico')
+                        ->icon('heroicon-o-user-plus')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->form([
+                            Select::make('technician_id')
+                                ->label('Técnico')
+                                ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                        ])
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records, array $data) {
+                            $records->each(function ($record) use ($data) {
+                                // Update logic
+                                $record->update([
+                                    'technician_id' => $data['technician_id'],
+                                    'estado_orden' => Orden::ESTADO_ASIGNADA,
+                                    'fecha_asignacion' => now(),
+                                ]);
+                            });
+
+                            Notification::make()
+                                ->title('Órdenes asignadas correctamente')
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->paginated([10, 25, 50, 100]);
