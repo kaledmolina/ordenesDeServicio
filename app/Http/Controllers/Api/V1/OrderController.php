@@ -169,14 +169,17 @@ class OrderController extends Controller
             ]);
         }
 
-        if ($estado !== 'en_sitio') {
+        $solucion = $request->input('solucion_tecnico'); // Retrieve solution early
+        $isSpecialCase = in_array($solucion, ['Solicitar Cierre', 'Reprogramar']);
+
+        if (!$isSpecialCase && $estado !== 'en_sitio') {
             return response()->json([
                 'message' => "No se puede finalizar la orden. Estado actual: '$estado'. Se esperaba: 'en_sitio'."
             ], 422);
         }
 
-        $solucion = $request->input('solucion_tecnico');
-        $isSpecialCase = in_array($solucion, ['Solicitar Cierre', 'Reprogramar']);
+        // $solucion already retrieved above
+        // $isSpecialCase already defined above
 
         $validated = $request->validate([
             'celular' => 'nullable|string|max:20',
