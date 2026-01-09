@@ -175,12 +175,15 @@ class OrderController extends Controller
             ], 422);
         }
 
+        $solucion = $request->input('solucion_tecnico');
+        $isSpecialCase = in_array($solucion, ['Solicitar Cierre', 'Reprogramar']);
+
         $validated = $request->validate([
             'celular' => 'nullable|string|max:20',
-            'observaciones' => 'nullable|string',
-            'solucion_tecnico' => 'nullable|string', // Added validation
-            'firma_tecnico' => 'required',
-            'firma_suscriptor' => 'required',
+            'observaciones' => $isSpecialCase ? 'required|string' : 'nullable|string',
+            'solucion_tecnico' => 'nullable|string',
+            'firma_tecnico' => $isSpecialCase ? 'nullable' : 'required',
+            'firma_suscriptor' => $isSpecialCase ? 'nullable' : 'required',
             'articulos' => 'nullable|array',
             'mac_router' => 'nullable|string',
             'mac_bridge' => 'nullable|string',
@@ -188,15 +191,20 @@ class OrderController extends Controller
             'otros_equipos' => 'nullable|string',
         ]);
 
+        $nuevoEstado = 'ejecutada'; // Default
+        if ($solucion === 'Reprogramar') {
+            $nuevoEstado = 'asignada';
+        }
+
         \Illuminate\Support\Facades\DB::table('ordens')
             ->where('id', $orden->id)
             ->update([
-                'estado_orden' => 'ejecutada',
+                'estado_orden' => $nuevoEstado,
                 'fecha_fin_atencion' => now(),
                 // Keep other fields
                 'telefono' => $validated['celular'] ?? $orden->telefono,
                 'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
-                'solucion_tecnico' => $validated['solucion_tecnico'] ?? $orden->solucion_tecnico, // Added update
+                'solucion_tecnico' => $validated['solucion_tecnico'] ?? $orden->solucion_tecnico,
                 'firma_tecnico' => $validated['firma_tecnico'],
                 'firma_suscriptor' => $validated['firma_suscriptor'],
                 'articulos' => isset($validated['articulos']) ? json_encode($validated['articulos']) : $orden->articulos,
