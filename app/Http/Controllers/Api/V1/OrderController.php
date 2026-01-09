@@ -219,6 +219,27 @@ class OrderController extends Controller
                 'updated_at' => now(),
             ]);
 
+        // Logic for Notification if Reprogrammed
+        if ($solucion === 'Reprogramar') {
+            $recipients = User::role(['administrador', 'operador'])->get();
+            $motivo = $validated['observaciones'] ?? 'Sin motivo especificado';
+
+            $notification = FilamentNotification::make()
+                ->title('Orden Reprogramada')
+                ->icon('heroicon-o-arrow-path-rounded-square')
+                ->body("El técnico {$user->name} reprogramó la orden #{$orden->numero_orden}. Motivo: \"{$motivo}\". Se requiere reasignación.")
+                ->actions([
+                    Action::make('view')
+                        ->label('Ver Orden')
+                        ->url(route('filament.admin.resources.ordens.edit', ['record' => $orden])),
+                ])
+                ->warning(); // Or danger/info
+
+            foreach ($recipients as $recipient) {
+                $notification->sendToDatabase($recipient);
+            }
+        }
+
         $orden->refresh();
 
         return response()->json([
