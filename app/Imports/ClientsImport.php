@@ -25,6 +25,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
     use Queueable;
 
     private $created = 0;
+    private $updated = 0;
     private $skipped = 0;
     private $seenCedulas = [];
     private $seenCodigos = [];
@@ -42,11 +43,12 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                 $stats = \Illuminate\Support\Facades\Cache::get($key);
 
                 $created = $stats['created'] ?? 0;
+                $updated = $stats['updated'] ?? 0;
                 $skipped = $stats['skipped'] ?? 0;
 
                 Notification::make()
                     ->title('Importación finalizada')
-                    ->body("La carga de clientes ha terminado.\n\n✅ Creados: {$created}\n⚠️ Omitidos: {$skipped}")
+                    ->body("La carga de clientes ha terminado.\n\n✅ Creados: {$created}\n🔄 Actualizados: {$updated}\n⚠️ Omitidos: {$skipped}")
                     ->success()
                     ->sendToDatabase($this->importedBy);
 
@@ -60,6 +62,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                     'total' => $total,
                     'processed' => 0,
                     'created' => 0,
+                    'updated' => 0,
                     'skipped' => 0,
                     'status' => 'running'
                 ], 3600);
@@ -108,39 +111,40 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                 $emailsToSearch[] = $email;
         }
 
-        // 2. Fetch existing users efficiently (Split queries to avoid OR scans)
+        // 2. Fetch existing users efficiently
+        // We need full objects now to update them, not just availability checks.
 
         // Query 1: By Cedula
-        $existingByCedula = [];
+        $existingByCedula = new Collection();
         if (!empty($cedulasToSearch)) {
-            $existingByCedula = User::whereIn('cedula', $cedulasToSearch)->select('id', 'cedula')->get();
+            $existingByCedula = User::whereIn('cedula', $cedulasToSearch)->get();
         }
 
         // Query 2: By Codigo
-        $existingByCodigo = [];
+        $existingByCodigo = new Collection();
         if (!empty($codigosToSearch)) {
-            $existingByCodigo = User::whereIn('codigo_contrato', $codigosToSearch)->select('id', 'codigo_contrato')->get();
+            $existingByCodigo = User::whereIn('codigo_contrato', $codigosToSearch)->get();
         }
 
-        // Fetch existing emails to prevent duplicate email error
+        // Fetch existing emails with ID to check ownership
         $existingEmails = [];
         if (!empty($emailsToSearch)) {
-            // Normalize keys to lowercase for case-insensitive check
+            // Map: email (lower) => user_id
             $existingEmails = User::whereIn('email', $emailsToSearch)
-                ->pluck('email')
-                ->mapWithKeys(fn($item) => [strtolower($item) => $item])
+                ->get()
+                ->mapWithKeys(fn($u) => [strtolower($u->email) => $u->id])
                 ->toArray();
         }
 
-        // Map for faster lookup: 'cedula_XXX' => true, 'codigo_YYY' => true
+        // Map for faster lookup: 'cedula_XXX' => User, 'codigo_YYY' => User
         $existingMap = [];
         foreach ($existingByCedula as $u) {
             if ($u->cedula)
-                $existingMap['cedula_' . $u->cedula] = true;
+                $existingMap['cedula_' . $u->cedula] = $u;
         }
         foreach ($existingByCodigo as $u) {
             if ($u->codigo_contrato)
-                $existingMap['codigo_' . $u->codigo_contrato] = true;
+                $existingMap['codigo_' . $u->codigo_contrato] = $u;
         }
 
         // Track emails seen in this chunk to prevent collisions within the file
@@ -148,11 +152,12 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
 
         // Track local stats
         $chunkCreated = 0;
+        $chunkUpdated = 0;
         $chunkSkipped = 0;
 
         // 3. Process rows
         foreach ($rows as $row) {
-            // Strict check for critical columns (only needed once effectively, but good for validation)
+            // Strict check for critical columns
             if (
                 !isset($row['cedula']) && !isset($row['codigo']) &&
                 !isset($row['cedula_de_ciudadania']) && !isset($row['codigo_cliente']) && !isset($row['codigo_de_contrato'])
@@ -167,71 +172,18 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                 continue;
             }
 
-            // Check duplicate in FILE (Global memory) - ONLY CODIGO
-            if ($codigo && isset($this->seenCodigos[$codigo])) {
-                $this->skipped++;
-                $chunkSkipped++;
-                continue;
+            // --- UPSERT LOGIC ---
+
+            // 1. Identify Existing User
+            $existingUser = null;
+            if ($codigo && isset($existingMap['codigo_' . $codigo])) {
+                $existingUser = $existingMap['codigo_' . $codigo];
+            } elseif ($cedula && isset($existingMap['cedula_' . $cedula])) {
+                $existingUser = $existingMap['cedula_' . $cedula];
             }
 
-            // Check duplicate in DB (Batch lookup) - ONLY CODIGO
-            $existsInDb = ($codigo && isset($existingMap['codigo_' . $codigo]));
-
-            if ($existsInDb) {
-                $this->skipped++;
-                $chunkSkipped++;
-                // Mark as seen so we don't process it again if repeated in file
-                if ($codigo)
-                    $this->seenCodigos[$codigo] = true;
-                continue;
-            }
-
-            // Handle Cedula Uniqueness
-            // Strategy: Allow distinct '123' and '123-2'. Rejects execution if both exist -> Max 2.
-            $cedulaExists = $cedula && (isset($this->seenCedulas[$cedula]) || isset($existingMap['cedula_' . $cedula]));
-
-            if ($cedulaExists) {
-                // WHITELIST: Only these cedulas are allowed to have a duplicate (-2)
-                $allowedDuplicates = [
-                    '50897298',
-                    '35870738',
-                    '1067905122',
-                    '1067836208',
-                    '10820244',
-                    '1067885336',
-                    '1100692807',
-                    '1067928041',
-                    '1067899610',
-                    '1003233824'
-                ];
-
-                if (in_array($cedula, $allowedDuplicates)) {
-                    $duplicateCedula = $cedula . '-2';
-                    $isDuplicateTaken = isset($this->seenCedulas[$duplicateCedula]) || isset($existingMap['cedula_' . $duplicateCedula]);
-
-                    if (!$isDuplicateTaken) {
-                        $cedula = $duplicateCedula;
-                    } else {
-                        // Max 2 reached for whitelisted user
-                        $this->skipped++;
-                        $chunkSkipped++;
-                        \Illuminate\Support\Facades\Log::info("Skipping client {$cedula} - Whitelisted Max 2 reached.");
-                        continue;
-                    }
-                } else {
-                    // Not in whitelist - Strict NO DUPLICATE
-                    $this->skipped++;
-                    $chunkSkipped++;
-                    \Illuminate\Support\Facades\Log::info("Skipping client {$cedula} - Duplicate not allowed.");
-                    continue;
-                }
-            }
-
-            // Mark as seen
-            if ($cedula)
-                $this->seenCedulas[$cedula] = true;
-            if ($codigo)
-                $this->seenCodigos[$codigo] = true;
+            // 2. Prepare Data (with potential email adjustment, done later)
+            // But strict unique checks depend on whether we are creating or updating.
 
             // Handle Email Uniqueness
             $email = isset($row['correo']) ? strtolower(trim($row['correo'])) : null;
@@ -239,42 +191,107 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                 $email = strtolower(($cedula ?? $codigo) . '@intalnet.com');
             }
 
-            // Check collision with DB or current chunk
-            if (isset($existingEmails[$email]) || isset($chunkSeenEmails[$email])) {
-                // Email collision! Append cedula to make unique (e.g. user@gmail.com -> user.12345@gmail.com)
-                // This preserves the domain but makes the local part unique.
+            // Check collision
+            // Collision if:
+            // 1. Email exists in DB AND (We are creating OR We are updating a user who DOES NOT own this email)
+            // 2. Email seen in this chunk (always collision unless we can somehow map that too, but assume duplicate row in chunk = collision for safety or we are processing same user twice)
+
+            $isCollision = false;
+
+            if (isset($chunkSeenEmails[$email])) {
+                $isCollision = true;
+            } elseif (isset($existingEmails[$email])) {
+                $ownerId = $existingEmails[$email];
+                if (!$existingUser) {
+                    // Creating new user, but email taken -> Collision
+                    $isCollision = true;
+                } else {
+                    // Updating user. Is it MY email?
+                    if ($ownerId != $existingUser->id) {
+                        // Taken by someone else -> Collision
+                        $isCollision = true;
+                    }
+                }
+            }
+
+            if ($isCollision) {
+                // Uniquify
                 $parts = explode('@', $email);
                 if (count($parts) == 2) {
                     $uniqueSuffix = $cedula ?? $codigo ?? rand(1000, 9999);
                     $email = $parts[0] . '.' . $uniqueSuffix . '@' . $parts[1];
                 } else {
-                    // Fallback if format weird
                     $email = strtolower(($cedula ?? $codigo) . '@intalnet.com');
                 }
             }
 
             // Mark new email as seen
             $chunkSeenEmails[$email] = true;
-
-            // Override email in row data essentially
             $row['correo'] = $email;
 
-            // CREATE USER
-            $this->createUser($row, $cedula, $codigo, $email);
-            $this->created++;
-            $chunkCreated++;
+            if ($existingUser) {
+                // UPDATE
+                $mappedData = $this->mapRowToData($row, $cedula, $codigo, $email);
+                // Exclude immutable fields or sensitive ones
+                unset($mappedData['password']);
+                unset($mappedData['created_at']);
+
+                // We update EVERYTHING mapped.
+                $existingUser->update($mappedData);
+
+                $this->updated++;
+                $chunkUpdated++;
+
+                // Update the map in case we found it by one key and now it has both, or changed one?
+                // Actually safer not to mess with map mid-loop unless strict need.
+            } else {
+                // CHECK duplicate in FILE (Global memory) - Only if we didn't find in DB, check if we just created it in previous chunk?
+                // seenCodigos/Cedulas track things created in this import session.
+
+                // If we found it in DB ($existingUser), we updated it.
+                // If not in DB, we check if we created it just now.
+
+                $justCreated = false;
+                if ($codigo && isset($this->seenCodigos[$codigo]))
+                    $justCreated = true;
+                if ($cedula && isset($this->seenCedulas[$cedula]))
+                    $justCreated = true;
+
+                if ($justCreated) {
+                    // It means it was not in DB when we started, but we created it in a previous row/chunk.
+                    // Ideally we should UPDATE that one too?
+                    // But we don't have the object easily.
+                    // For now, retain OLD behavior for "Duplicate in File but not DB" -> Skip/Log?
+                    // Or, just skip to avoid unique error.
+                    $this->skipped++;
+                    $chunkSkipped++;
+                    continue;
+                }
+
+                // CREATE
+                $this->createUser($row, $cedula, $codigo, $email);
+                $this->created++;
+                $chunkCreated++;
+
+                // Add to seen
+                if ($cedula)
+                    $this->seenCedulas[$cedula] = true;
+                if ($codigo)
+                    $this->seenCodigos[$codigo] = true;
+            }
         }
 
         // Update Stats in Cache
         $current = \Illuminate\Support\Facades\Cache::get($key);
         if ($current) {
             $current['created'] = ($current['created'] ?? 0) + $chunkCreated;
+            $current['updated'] = ($current['updated'] ?? 0) + $chunkUpdated;
             $current['skipped'] = ($current['skipped'] ?? 0) + $chunkSkipped;
             \Illuminate\Support\Facades\Cache::put($key, $current, 3600);
         }
     }
 
-    private function createUser($row, $cedula, $codigo, $email)
+    private function mapRowToData($row, $cedula, $codigo, $email)
     {
         $data = [
             'name' => $row['nombres_y_apellidos'] ?? $row['nombres'] ?? 'Sin Nombre',
@@ -323,16 +340,22 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
             'marca' => $row['marca'] ?? null,
         ];
 
-        // Email is passed as argument, already ensured not null and unique
+        return $data;
+    }
 
+    private function createUser($row, $cedula, $codigo, $email)
+    {
+        $data = $this->mapRowToData($row, $cedula, $codigo, $email);
 
         // Clean and truncate password base (cedula) to avoid Bcrypt 'too long' error
         $passBase = $cedula ?? '123456';
         if (strlen($passBase) > 30) {
             $passBase = substr($passBase, 0, 30);
         }
-        $data['password'] = $passBase; // REMOVED Hash::make, handled by model cast
+        $data['password'] = $passBase;
         $data['created_at'] = now();
+
+        // ... rest of create logic ...
 
         // Try to create user with retry logic for unique constraint violations
         $attempts = 0;

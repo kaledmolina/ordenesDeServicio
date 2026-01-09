@@ -23,160 +23,160 @@
                     <div wire:ignore>
                         <!-- Minigame & Loading Spinner -->
                         <div x-data="{
-                                    clicks: 0,
-                                    showGame: false,
-                                    scorePlayer1: 0,
-                                    scorePlayer2: 0,
-                                    mode: 'cpu', // 'cpu' or 'pvp'
-                                    keys: {},
-                                    gameInterval: null,
+                                        clicks: 0,
+                                        showGame: false,
+                                        scorePlayer1: 0,
+                                        scorePlayer2: 0,
+                                        mode: 'cpu', // 'cpu' or 'pvp'
+                                        keys: {},
+                                        gameInterval: null,
 
-                                    stopGame: function() {
-                                        if (this.gameInterval) clearInterval(this.gameInterval);
-                                        this.gameInterval = null;
-                                        this.showGame = false;
-                                        this.scorePlayer1 = 0;
-                                        this.scorePlayer2 = 0;
-                                        this.clicks = 0; 
-                                    },
+                                        stopGame: function() {
+                                            if (this.gameInterval) clearInterval(this.gameInterval);
+                                            this.gameInterval = null;
+                                            this.showGame = false;
+                                            this.scorePlayer1 = 0;
+                                            this.scorePlayer2 = 0;
+                                            this.clicks = 0; 
+                                        },
 
-                                    toggleMode: function() {
-                                        this.mode = (this.mode === 'cpu') ? 'pvp' : 'cpu';
-                                        this.scorePlayer1 = 0;
-                                        this.scorePlayer2 = 0;
-                                    },
+                                        toggleMode: function() {
+                                            this.mode = (this.mode === 'cpu') ? 'pvp' : 'cpu';
+                                            this.scorePlayer1 = 0;
+                                            this.scorePlayer2 = 0;
+                                        },
 
-                                    initGame: function() {
-                                        const canvas = this.$refs.gameCanvas;
-                                        if (!canvas) return;
-                                        const ctx = canvas.getContext('2d');
-                                        let ball = { x: canvas.width/2, y: canvas.height/2, dx: 4, dy: 4, radius: 6 };
-                                        let paddleHeight = 60, paddleWidth = 10;
-                                        let player1Y = (canvas.height - paddleHeight) / 2;
-                                        let player2Y = (canvas.height - paddleHeight) / 2;
+                                        initGame: function() {
+                                            const canvas = this.$refs.gameCanvas;
+                                            if (!canvas) return;
+                                            const ctx = canvas.getContext('2d');
+                                            let ball = { x: canvas.width/2, y: canvas.height/2, dx: 4, dy: 4, radius: 6 };
+                                            let paddleHeight = 60, paddleWidth = 10;
+                                            let player1Y = (canvas.height - paddleHeight) / 2;
+                                            let player2Y = (canvas.height - paddleHeight) / 2;
 
-                                        // Keyboard listeners
-                                        window.addEventListener('keydown', (e) => this.keys[e.key] = true);
-                                        window.addEventListener('keyup', (e) => this.keys[e.key] = false);
+                                            // Keyboard listeners
+                                            window.addEventListener('keydown', (e) => this.keys[e.key] = true);
+                                            window.addEventListener('keyup', (e) => this.keys[e.key] = false);
 
-                                        // Mouse control for P1 (CPU mode)
-                                        canvas.addEventListener('mousemove', (e) => {
-                                            if (this.mode === 'cpu') {
-                                                const rect = canvas.getBoundingClientRect();
-                                                let root = document.documentElement;
-                                                let mouseY = e.clientY - rect.top - root.scrollTop;
-                                                player1Y = mouseY - (paddleHeight/2);
-                                            }
-                                        });
-
-                                        if (this.gameInterval) clearInterval(this.gameInterval);
-
-                                        this.gameInterval = setInterval(() => {
-                                            if (!this.showGame) return;
-
-                                            // MOVEMENT
-                                            const speed = 5;
-
-                                            // Player 1 (Left)
-                                            if (this.mode === 'pvp') {
-                                                if (this.keys['w'] || this.keys['W']) player1Y -= speed;
-                                                if (this.keys['s'] || this.keys['S']) player1Y += speed;
-                                            }
-                                            // Clamp P1
-                                            if (player1Y < 0) player1Y = 0;
-                                            if (player1Y > canvas.height - paddleHeight) player1Y = canvas.height - paddleHeight;
-
-
-                                            // Player 2 (Right)
-                                            if (this.mode === 'cpu') {
-                                                // AI
-                                                let computerCenter = player2Y + (paddleHeight/2);
-                                                if (computerCenter < ball.y - 35) {
-                                                    player2Y += 4; 
-                                                } else if (computerCenter > ball.y + 35) {
-                                                    player2Y -= 4;
+                                            // Mouse control for P1 (CPU mode)
+                                            canvas.addEventListener('mousemove', (e) => {
+                                                if (this.mode === 'cpu') {
+                                                    const rect = canvas.getBoundingClientRect();
+                                                    let root = document.documentElement;
+                                                    let mouseY = e.clientY - rect.top - root.scrollTop;
+                                                    player1Y = mouseY - (paddleHeight/2);
                                                 }
-                                            } else {
-                                                // PVP
-                                                if (this.keys['ArrowUp']) player2Y -= speed;
-                                                if (this.keys['ArrowDown']) player2Y += speed;
-                                            }
-                                            // Clamp P2
-                                            if (player2Y < 0) player2Y = 0;
-                                            if (player2Y > canvas.height - paddleHeight) player2Y = canvas.height - paddleHeight;
+                                            });
 
-                                            // BALL PHYSICS
-                                            ball.x += ball.dx;
-                                            ball.y += ball.dy;
+                                            if (this.gameInterval) clearInterval(this.gameInterval);
 
-                                            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
-                                                ball.dy = -ball.dy;
-                                            }
+                                            this.gameInterval = setInterval(() => {
+                                                if (!this.showGame) return;
 
-                                            // Paddle collisions
-                                            // Player 1
-                                            if (ball.x - ball.radius < paddleWidth) {
-                                                if (ball.y > player1Y && ball.y < player1Y + paddleHeight) {
-                                                    ball.dx = -ball.dx;
-                                                    let deltaY = ball.y - (player1Y + paddleHeight/2);
-                                                    ball.dy = deltaY * 0.35;
-                                                    if (Math.abs(ball.dx) < 12) ball.dx *= 1.05;
-                                                } else if (ball.x < 0) {
-                                                    this.scorePlayer2++;
-                                                    this.resetBall(ball, canvas);
+                                                // MOVEMENT
+                                                const speed = 5;
+
+                                                // Player 1 (Left)
+                                                if (this.mode === 'pvp') {
+                                                    if (this.keys['w'] || this.keys['W']) player1Y -= speed;
+                                                    if (this.keys['s'] || this.keys['S']) player1Y += speed;
                                                 }
-                                            }
-                                            // Player 2
-                                            if (ball.x + ball.radius > canvas.width - paddleWidth) {
-                                                if (ball.y > player2Y && ball.y < player2Y + paddleHeight) {
-                                                    ball.dx = -ball.dx;
-                                                    let deltaY = ball.y - (player2Y + paddleHeight/2);
-                                                    ball.dy = deltaY * 0.35;
-                                                    if (Math.abs(ball.dx) < 12) ball.dx *= 1.05;
-                                                } else if (ball.x > canvas.width) {
-                                                    this.scorePlayer1++;
-                                                    this.resetBall(ball, canvas);
+                                                // Clamp P1
+                                                if (player1Y < 0) player1Y = 0;
+                                                if (player1Y > canvas.height - paddleHeight) player1Y = canvas.height - paddleHeight;
+
+
+                                                // Player 2 (Right)
+                                                if (this.mode === 'cpu') {
+                                                    // AI
+                                                    let computerCenter = player2Y + (paddleHeight/2);
+                                                    if (computerCenter < ball.y - 35) {
+                                                        player2Y += 4; 
+                                                    } else if (computerCenter > ball.y + 35) {
+                                                        player2Y -= 4;
+                                                    }
+                                                } else {
+                                                    // PVP
+                                                    if (this.keys['ArrowUp']) player2Y -= speed;
+                                                    if (this.keys['ArrowDown']) player2Y += speed;
                                                 }
-                                            }
+                                                // Clamp P2
+                                                if (player2Y < 0) player2Y = 0;
+                                                if (player2Y > canvas.height - paddleHeight) player2Y = canvas.height - paddleHeight;
 
-                                            // DRAW
-                                            ctx.fillStyle = 'black';
-                                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                                // BALL PHYSICS
+                                                ball.x += ball.dx;
+                                                ball.y += ball.dy;
 
-                                            // Net
-                                            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-                                            ctx.beginPath();
-                                            ctx.setLineDash([5, 15]);
-                                            ctx.moveTo(canvas.width/2, 0);
-                                            ctx.lineTo(canvas.width/2, canvas.height);
-                                            ctx.stroke();
+                                                if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
+                                                    ball.dy = -ball.dy;
+                                                }
 
-                                            // Ball
-                                            ctx.fillStyle = 'white';
-                                            ctx.beginPath();
-                                            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2, false);
-                                            ctx.fill();
+                                                // Paddle collisions
+                                                // Player 1
+                                                if (ball.x - ball.radius < paddleWidth) {
+                                                    if (ball.y > player1Y && ball.y < player1Y + paddleHeight) {
+                                                        ball.dx = -ball.dx;
+                                                        let deltaY = ball.y - (player1Y + paddleHeight/2);
+                                                        ball.dy = deltaY * 0.35;
+                                                        if (Math.abs(ball.dx) < 12) ball.dx *= 1.05;
+                                                    } else if (ball.x < 0) {
+                                                        this.scorePlayer2++;
+                                                        this.resetBall(ball, canvas);
+                                                    }
+                                                }
+                                                // Player 2
+                                                if (ball.x + ball.radius > canvas.width - paddleWidth) {
+                                                    if (ball.y > player2Y && ball.y < player2Y + paddleHeight) {
+                                                        ball.dx = -ball.dx;
+                                                        let deltaY = ball.y - (player2Y + paddleHeight/2);
+                                                        ball.dy = deltaY * 0.35;
+                                                        if (Math.abs(ball.dx) < 12) ball.dx *= 1.05;
+                                                    } else if (ball.x > canvas.width) {
+                                                        this.scorePlayer1++;
+                                                        this.resetBall(ball, canvas);
+                                                    }
+                                                }
 
-                                            // Paddles
-                                            ctx.fillStyle = 'white';
-                                            ctx.fillRect(0, player1Y, paddleWidth, paddleHeight);
-                                            ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
+                                                // DRAW
+                                                ctx.fillStyle = 'black';
+                                                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                                            // Scores
-                                            ctx.font = '30px Courier New';
-                                            ctx.textAlign = 'center';
-                                            ctx.fillText(this.scorePlayer1, canvas.width/4, 50);
-                                            ctx.fillText(this.scorePlayer2, 3*canvas.width/4, 50);
+                                                // Net
+                                                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                                                ctx.beginPath();
+                                                ctx.setLineDash([5, 15]);
+                                                ctx.moveTo(canvas.width/2, 0);
+                                                ctx.lineTo(canvas.width/2, canvas.height);
+                                                ctx.stroke();
 
-                                        }, 1000/60);
-                                    },
-                                    resetBall: function(ball, canvas) {
-                                        ball.x = canvas.width / 2;
-                                        ball.y = canvas.height / 2;
-                                        ball.dx = (Math.random() > 0.5 ? 4 : -4);
-                                        ball.dy = (Math.random() * 6) - 3; 
-                                    }
-                                }"
+                                                // Ball
+                                                ctx.fillStyle = 'white';
+                                                ctx.beginPath();
+                                                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2, false);
+                                                ctx.fill();
+
+                                                // Paddles
+                                                ctx.fillStyle = 'white';
+                                                ctx.fillRect(0, player1Y, paddleWidth, paddleHeight);
+                                                ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
+
+                                                // Scores
+                                                ctx.font = '30px Courier New';
+                                                ctx.textAlign = 'center';
+                                                ctx.fillText(this.scorePlayer1, canvas.width/4, 50);
+                                                ctx.fillText(this.scorePlayer2, 3*canvas.width/4, 50);
+
+                                            }, 1000/60);
+                                        },
+                                        resetBall: function(ball, canvas) {
+                                            ball.x = canvas.width / 2;
+                                            ball.y = canvas.height / 2;
+                                            ball.dx = (Math.random() > 0.5 ? 4 : -4);
+                                            ball.dy = (Math.random() * 6) - 3; 
+                                        }
+                                    }"
                             class="p-4 mb-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors duration-300 min-h-[150px] flex items-center justify-center relative">
                             <!-- Spinner View -->
                             <div x-show="!showGame"
@@ -223,6 +223,10 @@
 
                     <p class="text-xs text-gray-500 text-center">
                         Procesados {{ $total > 0 ? round(($progress / 100) * $total) : 0 }} de {{ $total }} registros
+                        <br>
+                        <span class="text-green-600 dark:text-green-400 font-bold">Creados: {{ $created }}</span>
+                        <span class="mx-1 text-gray-300">|</span>
+                        <span class="text-blue-600 dark:text-blue-400 font-bold">Actualizados: {{ $updated }}</span>
                     </p>
                 </div>
             </x-filament::card>
