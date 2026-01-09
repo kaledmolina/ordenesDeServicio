@@ -6,7 +6,7 @@ use Filament\Pages\Page;
 // 👇 Importa los widgets que vas a usar
 use App\Filament\Widgets\OrderStatsOverview;
 use App\Filament\Widgets\FilteredOrdersTable;
-use App\Filament\Widgets\RankingTecnicosMes;
+use App\Filament\Widgets\OrdenesPendientes;
 
 class Dashboard extends Page
 {
@@ -29,7 +29,7 @@ class Dashboard extends Page
     {
         return [
             OrderStatsOverview::class,
-            RankingTecnicosMes::class,
+            OrdenesPendientes::class,
             FilteredOrdersTable::class,
         ];
     }
