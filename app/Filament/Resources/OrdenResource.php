@@ -214,7 +214,26 @@ class OrdenResource extends Resource
                     ->schema([
                         Repeater::make('articulos')
                             ->schema([
-                                TextInput::make('grupo_articulo')->label('Articulo')->columnSpan(2),
+                                Select::make('grupo_articulo')
+                                    ->label('Artículo')
+                                    ->options([
+                                        'Esclavo con wifi (unidad)' => 'Esclavo con wifi (unidad)',
+                                        'Mecanico sc/apc' => 'Mecanico sc/apc',
+                                        'Cable drop 1 hilo' => 'Cable drop 1 hilo',
+                                        'Grapas de muro' => 'Grapas de muro',
+                                        'Ont' => 'Ont',
+                                        'Canaleta plastica' => 'Canaleta plastica',
+                                        'Abrazadera metalicas' => 'Abrazadera metalicas',
+                                        'Chazos(unidad)' => 'Chazos(unidad)',
+                                        'Tornillos(unidad)' => 'Tornillos(unidad)',
+                                        'Amarres plasticos (unidad)' => 'Amarres plasticos (unidad)',
+                                        'Cinta bandi(centimetro)' => 'Cinta bandi(centimetro)',
+                                        'Clavos' => 'Clavos',
+                                        'Conector RG6' => 'Conector RG6',
+                                        'Cable coaxial' => 'Cable coaxial',
+                                    ])
+                                    ->searchable()
+                                    ->columnSpan(2),
                                 Textarea::make('descripcion')->label('Descripcion')->rows(1)->columnSpan(2),
                                 TextInput::make('asoc')->label('ASOC')->columnSpan(1),
                                 TextInput::make('valor_unitario')
@@ -238,23 +257,8 @@ class OrdenResource extends Resource
                                 TextInput::make('total')->label('Total')->numeric()->readOnly()->columnSpan(1),
                             ])
                             ->columns(8)
-                            ->defaultItems(1)
-                            ->default([
-                                ['grupo_articulo' => 'Esclavo con wifi (unidad)', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Mecanico sc/apc', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Cable drop 1 hilo', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Grapas de muro', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Ont', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Canaleta plastica', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Abrazadera metalicas', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Chazos(unidad)', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Tornillos(unidad)', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Amarres plasticos (unidad)', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Cinta bandi(centimetro)', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Clavos', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Conector RG6', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                                ['grupo_articulo' => 'Cable coaxial', 'descripcion' => '', 'asoc' => '', 'cantidad' => 0, 'valor_unitario' => 0, 'total' => 0],
-                            ])
+                            ->defaultItems(0) // Start empty as requested ("que se muestre un boton agregaar arrticulo")
+                            ->addActionLabel('Agregar Artículo')
                             ->live(),
                     ]),
 
