@@ -70,7 +70,15 @@ class OrdenResource extends Resource
                     ->schema([
                         Select::make('cliente_id')
                             ->label('Código - Nombres Cliente')
-                            ->relationship('cliente', 'name', fn(Builder $query) => $query->role('cliente'))
+                            ->getSearchResultsUsing(fn(string $search): array => User::role('cliente')
+                                ->where(function ($q) use ($search) {
+                                    $q->where('name', 'like', "%{$search}%")
+                                        ->orWhere('cedula', 'like', "%{$search}%");
+                                })
+                                ->limit(50)
+                                ->pluck('name', 'id')
+                                ->toArray())
+                            ->getOptionLabelUsing(fn($value): ?string => User::find($value)?->name)
                             ->searchable()
                             ->preload()
                             ->live()
@@ -342,6 +350,10 @@ class OrdenResource extends Resource
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('cliente.codigo_contrato')
+                    ->label('Código Cliente')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('cliente.barrio')
                     ->label('Barrio')
                     ->searchable()
@@ -437,7 +449,8 @@ class OrdenResource extends Resource
                     }),
             ])
             ->actions([
-                Action::make('asignarTecnico')
+                ActionGroup::make([
+                    Action::make('asignarTecnico')
                     ->label('Asignar Técnico')
                     ->icon('heroicon-o-user-plus')
                     ->color('warning')
@@ -691,6 +704,7 @@ class OrdenResource extends Resource
                             'estado_orden' => Orden::ESTADO_ANULADA,
                         ]);
                     }),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
