@@ -30,6 +30,13 @@ class OrderController extends Controller
             $query->where('estado_orden', $request->status);
         }
 
+        // Filtro por barrio
+        if ($request->has('barrio') && !empty($request->barrio)) {
+            $query->whereHas('cliente', function ($q) use ($request) {
+                $q->where('barrio', $request->barrio);
+            });
+        }
+
         // Buscador
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
@@ -390,6 +397,12 @@ class OrderController extends Controller
             $query->where('tipo_orden', $request->tipo_orden);
         }
 
+        if ($request->has('barrio') && !empty($request->barrio)) {
+            $query->whereHas('cliente', function ($q) use ($request) {
+                $q->where('barrio', $request->barrio);
+            });
+        }
+
         $orders = $query->latest('created_at')->paginate(20);
 
         return response()->json($orders);
@@ -431,5 +444,24 @@ class OrderController extends Controller
             'message' => 'Orden asignada correctamente.',
             'order' => $orden
         ]);
+    }
+
+    /**
+     * Devuelve la lista de barrios (únicos) de los clientes existentes.
+     */
+    public function getBarrios(Request $request)
+    {
+        // Obtener barrios distintos de usuarios con rol 'cliente'
+        // Asumiendo que User::role('cliente') funciona (requiere Spatie Permission o lógica custom)
+        // O simplemente buscamos en la tabla users donde tenga barrio no nulo.
+
+        $barrios = User::whereNotNull('barrio')
+            ->where('barrio', '!=', '')
+            ->distinct()
+            ->pluck('barrio')
+            ->sort()
+            ->values();
+
+        return response()->json($barrios);
     }
 }
