@@ -130,7 +130,10 @@ class OrdenResource extends Resource
                             ])
                             ->default('1 Suscriptor')
                             ->required(),
-                        Forms\Components\DatePicker::make('fecha_trn')->label('FECHA TRN')->required(),
+                        Forms\Components\DatePicker::make('fecha_trn')
+                            ->label('FECHA TRN')
+                            ->default(now())
+                            ->required(),
                         Forms\Components\DatePicker::make('fecha_vencimiento')->label('F. VENC'),
                         TextInput::make('numero_orden')
                             ->label('NUMERO')
@@ -152,6 +155,7 @@ class OrdenResource extends Resource
                             ->dehydrated(),
                         Select::make('clasificacion')
                             ->label('CLASIFICACION')
+                            ->required()
                             ->options([
                                 'rapidas' => 'Rápidas',
                                 'cuadrilla' => 'Cuadrilla',
