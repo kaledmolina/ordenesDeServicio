@@ -129,7 +129,8 @@ class OrdenResource extends Resource
                             ->label('TIPO ORDEN')
                             ->options(Orden::TIPO_ORDEN_OPTIONS)
                             ->live()
-                            ->searchable(),
+                            ->searchable()
+                            ->required(),
                         Select::make('tipo_funcion')
                             ->label('TIPO FUNCION')
                             ->options([
@@ -208,6 +209,7 @@ class OrdenResource extends Resource
                         Select::make('solicitud_suscriptor')
                             ->label('SOLICITUD SUSCRIPTOR (Reporte)')
                             ->visible(fn(\Filament\Forms\Get $get) => $get('tipo_orden') === '025')
+                            ->required(fn(\Filament\Forms\Get $get) => $get('tipo_orden') === '025')
                             ->options(Orden::SOLICITUD_SUSCRIPTOR_OPTIONS)
                             ->searchable(),
 
