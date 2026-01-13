@@ -454,6 +454,28 @@ class OrdenResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
+                    Action::make('reportarNovedad')
+                        ->label('Reportar Novedad')
+                        ->icon('heroicon-o-megaphone')
+                        ->color('info')
+                        ->form([
+                            Textarea::make('novedades_noc')
+                                ->label('Novedades NOC')
+                                ->rows(4),
+                        ])
+                        ->action(function (Orden $record, array $data) {
+                            $record->update([
+                                'novedades_noc' => $data['novedades_noc'],
+                            ]);
+
+                            Notification::make()
+                                ->title('Novedad registrada correctamente')
+                                ->success()
+                                ->send();
+                        })
+                        ->mountUsing(fn (Forms\ComponentContainer $form, Orden $record) => $form->fill([
+                            'novedades_noc' => $record->novedades_noc,
+                        ])),
                     Action::make('asignarTecnico')
                         ->label('Asignar Técnico')
                         ->icon('heroicon-o-user-plus')
