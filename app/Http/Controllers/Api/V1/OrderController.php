@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Notifications\Actions\Action;
 use App\Http\Resources\OrdenFotoResource;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrdenEnProceso;
 
 class OrderController extends Controller
 {
@@ -109,6 +111,16 @@ class OrderController extends Controller
             ]);
 
         $orden->refresh();
+
+        // Enviar correo al cliente
+        if ($orden->cliente && $orden->cliente->email) {
+            try {
+                Mail::to($orden->cliente->email)->send(new OrdenEnProceso($orden));
+            } catch (\Exception $e) {
+                // Loguear error pero no detener la ejecución
+                \Illuminate\Support\Facades\Log::error('Error enviando correo OrdenEnProceso: ' . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'message' => 'Orden tomada y en proceso.',
