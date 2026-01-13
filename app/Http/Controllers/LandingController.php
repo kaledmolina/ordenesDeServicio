@@ -15,9 +15,9 @@ class LandingController extends Controller
         if ($search) {
             $orders = Orden::query()
                 ->where('numero_orden', $search)
-                ->orWhere('cedula', $search) // Asumiendo que existe columna cedula o similar
+                ->orWhere('cedula', $search)
                 ->latest()
-                ->limit(5)
+                ->limit(10)
                 ->get();
         }
 
