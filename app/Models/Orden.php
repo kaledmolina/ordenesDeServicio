@@ -52,6 +52,7 @@ class Orden extends Model
         'otros_equipos',
         'firma_tecnico',
         'firma_suscriptor',
+        'novedades_noc',
     ];
 
     protected $casts = [

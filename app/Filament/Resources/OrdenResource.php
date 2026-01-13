@@ -226,6 +226,10 @@ class OrdenResource extends Resource
                     ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
                         TextInput::make('valor_total')->label('VALOR TOTAL')->numeric()->prefix('$'),
+                        Textarea::make('novedades_noc')
+                            ->label('NOVEDADES NOC')
+                            ->rows(3)
+                            ->columnSpanFull(),
                         Textarea::make('observaciones')->label('OBSERVACIONES')->columnSpanFull(),
                     ])->columns(2),
 
