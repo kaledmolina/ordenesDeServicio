@@ -215,11 +215,8 @@ class OrdenResource extends Resource
 
                         Select::make('solucion_tecnico')
                             ->label('SOLUCIÓN TÉCNICO')
-                            ->options([
-                                '1 CAMBIO - CONECTOR' => '1 CAMBIO - CONECTOR',
-                                '2 REINICIO EQUIPOS' => '2 REINICIO EQUIPOS',
-                                '3 CAMBIO EQUIPO' => '3 CAMBIO EQUIPO',
-                            ])
+                            ->options(Orden::SOLUCION_TECNICO_OPTIONS)
+                            ->multiple()
                             ->searchable(),
                     ])->columns(2),
 
@@ -675,10 +672,10 @@ class OrdenResource extends Resource
                                     Select::make('solucion_tecnico')
                                         ->label('SOLUCIÓN TÉCNICO')
                                         ->options([
-                                            '1 CAMBIO - CONECTOR' => '1 CAMBIO - CONECTOR',
-                                            '2 REINICIO EQUIPOS' => '2 REINICIO EQUIPOS',
                                             '3 CAMBIO EQUIPO' => '3 CAMBIO EQUIPO',
                                         ])
+                                        ->options(Orden::SOLUCION_TECNICO_OPTIONS)
+                                        ->multiple()
                                         ->required() // Optional: make required if needed, user request implies it's a key selection
                                         ->searchable(),
                                 ])
