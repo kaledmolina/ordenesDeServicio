@@ -175,11 +175,16 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
             // --- UPSERT LOGIC ---
 
             // 1. Identify Existing User
+            // 1. Identify Existing User
             $existingUser = null;
-            if ($codigo && isset($existingMap['codigo_' . $codigo])) {
-                $existingUser = $existingMap['codigo_' . $codigo];
-            } elseif ($cedula && isset($existingMap['cedula_' . $cedula])) {
+            // PRIORITY CHANGE: Check Cedula FIRST.
+            // This prevents the case where we find a user by code, try to update them with a cedula that 
+            // ALREADY belongs to another user (who wasn't found because we looked up code first),
+            // triggering a unique constraint error.
+            if ($cedula && isset($existingMap['cedula_' . $cedula])) {
                 $existingUser = $existingMap['cedula_' . $cedula];
+            } elseif ($codigo && isset($existingMap['codigo_' . $codigo])) {
+                $existingUser = $existingMap['codigo_' . $codigo];
             }
 
             // 2. Prepare Data (with potential email adjustment, done later)
