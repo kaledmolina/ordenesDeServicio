@@ -243,10 +243,16 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                 unset($mappedData['created_at']);
 
                 // We update EVERYTHING mapped.
-                $existingUser->update($mappedData);
+                $existingUser->fill($mappedData);
 
-                $this->updated++;
-                $chunkUpdated++;
+                if ($existingUser->isDirty()) {
+                    $existingUser->save();
+                    $this->updated++;
+                    $chunkUpdated++;
+                } else {
+                    $this->skipped++;
+                    $chunkSkipped++;
+                }
 
                 // Update the map in case we found it by one key and now it has both, or changed one?
                 // Actually safer not to mess with map mid-loop unless strict need.
