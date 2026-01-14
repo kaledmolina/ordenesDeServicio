@@ -268,6 +268,8 @@ class OrderController extends Controller
              $icon = $solucionType === 'Reprogramar' ? 'heroicon-o-arrow-path-rounded-square' : 'heroicon-o-check-circle';
              $actionText = $solucionType === 'Reprogramar' ? 'reprogramó' : 'solicitó cierre para';
              
+             $recipients = User::role(['administrador', 'operador'])->get();
+
              $notification = FilamentNotification::make()
                 ->title($title)
                 ->icon($icon)
