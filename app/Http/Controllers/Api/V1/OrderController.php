@@ -189,6 +189,20 @@ class OrderController extends Controller
         }
 
         $solucion = $request->input('solucion_tecnico'); 
+
+        // CRITICAL FIX: Normalize input. If it's a string, wrap in array.
+        // This handles cases where client sends "Reprogramar" as string instead of ["Reprogramar"]
+        if ($solucion && !is_array($solucion)) {
+            // Check if it's a JSON string by chance, otherwise just wrap
+            $decoded = json_decode($solucion, true);
+            if (is_array($decoded)) {
+                $solucion = $decoded;
+            } else {
+                $solucion = [$solucion];
+            }
+            // Merge back to request so validation sees it as array
+            $request->merge(['solucion_tecnico' => $solucion]);
+        }
         // If array, take the first one or logic is different?
         // Actually, $isSpecialCase checking needs to handle array now.
         // Assuming special cases (Reprogramar, Solicitar Cierre) act as single selections or flags
