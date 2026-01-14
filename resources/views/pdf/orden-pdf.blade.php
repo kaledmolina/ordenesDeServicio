@@ -202,7 +202,7 @@
                     </tr>
                 @endfor
                 <tr>
-                   <td colspan="5" style="border:none; text-align:center; font-weight:bold;">OBSERVACIONES DE EJECUCION</td>
+                   <td colspan="5" style="border:none; text-align:center; font-weight:bold;">EQUIPOS RETIRADOS</td>
                 </tr>
             </tbody>
         </table>
@@ -210,8 +210,9 @@
         <!-- EQUIPOS INSTALADOS SUB-TABLE (INSIDE THE MATERIALS FLOW visually in image) -->
          <table class="materials-table" style="margin-top: -6px; border-top: none;">
               <tr>
-                  <td width="30%" rowspan="4" style="vertical-align: top; border-right: 1px solid #000;">
-                      <div>
+                   <td width="30%" rowspan="4" style="vertical-align: top; border-right: 1px solid #000;">
+                       <div style="font-weight: bold; margin-bottom: 3px;">OBSERVACIONES DE EJECUCION:</div>
+                       <div>
                           @php
                               $sol = $orden->solucion_tecnico;
                               if (is_array($sol)) {
