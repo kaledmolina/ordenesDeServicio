@@ -64,8 +64,9 @@ class OrdenEspecialResource extends Resource
                         Forms\Components\TextInput::make('technician.name')
                             ->label('Técnico Responsable')
                             ->readOnly(),
-                        Forms\Components\TextInput::make('fecha_fin_atencion')
+                        Forms\Components\DateTimePicker::make('fecha_fin_atencion')
                             ->label('Fecha Reporte')
+                            ->displayFormat('d/m/Y H:i A')
                             ->readOnly(),
                     ])->columns(2)
             ]);
