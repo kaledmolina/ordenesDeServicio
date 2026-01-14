@@ -14,6 +14,7 @@ class ImportProgress extends Widget
     public $total = 0;
     public $created = 0;
     public $updated = 0;
+    public $skipped = 0;
     public $status = 'idle'; // idle, running, finished
 
     public function mount()
@@ -32,6 +33,7 @@ class ImportProgress extends Widget
             $processed = $data['processed'];
             $this->created = $data['created'] ?? 0;
             $this->updated = $data['updated'] ?? 0;
+            $this->skipped = $data['skipped'] ?? 0;
             $this->status = $data['status'];
 
             if ($this->total > 0) {

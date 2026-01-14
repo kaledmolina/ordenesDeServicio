@@ -11,12 +11,16 @@
                                 ✕
                             </x-filament::button>
                         </div>
-                        <span>{{ $progress }}%</span>
+                        {{-- <span>{{ $progress }}%</span> --}}
                     </div>
 
-                    <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                    {{-- Progress Bar Hidden as total is unknown --}}
+                    {{-- <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                         <div class="bg-primary-600 h-2.5 rounded-full transition-all duration-500"
                             style="width: {{ $progress }}%"></div>
+                    </div> --}}
+                    <div class="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+                        <div class="h-full bg-primary-500 animate-progress-indeterminate"></div>
                     </div>
 
 
@@ -222,11 +226,11 @@
                     </div>
 
                     <p class="text-xs text-gray-500 text-center">
-                        Procesados {{ $total > 0 ? round(($progress / 100) * $total) : 0 }} de {{ $total }} registros
-                        <br>
                         <span class="text-green-600 dark:text-green-400 font-bold">Creados: {{ $created }}</span>
                         <span class="mx-1 text-gray-300">|</span>
                         <span class="text-blue-600 dark:text-blue-400 font-bold">Actualizados: {{ $updated }}</span>
+                        <span class="mx-1 text-gray-300">|</span>
+                        <span class="text-orange-600 dark:text-orange-400 font-bold">Omitidos: {{ $skipped }}</span>
                     </p>
                 </div>
             </x-filament::card>
