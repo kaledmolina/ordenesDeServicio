@@ -20,7 +20,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-       if ($this->app->environment('production')) {
+        date_default_timezone_set('America/Bogota');
+        \Carbon\Carbon::setLocale('es');
+
+        if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
     }
