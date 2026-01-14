@@ -33,6 +33,7 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
     public function __construct(
         protected User $importedBy
     ) {
+        ini_set('memory_limit', '1024M');
     }
 
     public function registerEvents(): array
@@ -55,11 +56,11 @@ class ClientsImport implements ToCollection, WithHeadingRow, WithChunkReading, S
                 \Illuminate\Support\Facades\Cache::forget($key);
             },
             \Maatwebsite\Excel\Events\BeforeImport::class => function (\Maatwebsite\Excel\Events\BeforeImport $event) {
-                $totalRows = $event->getReader()->getTotalRows(); // Returns array ['Worksheet' => count]
-                $total = reset($totalRows) - 1; // Subtract header
-    
+                // REMOVED: getReader()->getTotalRows() causes memory exhaustion on large files.
+                // We set an estimation or just 0 to indicate "Unknown".
+                
                 \Illuminate\Support\Facades\Cache::put('import_progress_' . $this->importedBy->id, [
-                    'total' => $total,
+                    'total' => 0, // 0 indicates unknown/unlimited
                     'processed' => 0,
                     'created' => 0,
                     'updated' => 0,
