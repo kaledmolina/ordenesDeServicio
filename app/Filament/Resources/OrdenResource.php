@@ -259,6 +259,11 @@ class OrdenResource extends Resource
                                         'Clavos' => 'Clavos',
                                         'Conector RG6' => 'Conector RG6',
                                         'Cable coaxial' => 'Cable coaxial',
+                                        'Router' => 'Router',
+                                        'Bridge' => 'Bridge',
+                                        'Camara' => 'Camara',
+                                        'Onu' => 'Onu',
+                                        'Otros' => 'Otros',
                                     ])
                                     ->searchable()
                                     ->columnSpan(2),
