@@ -247,8 +247,8 @@ class OrderController extends Controller
                 $nuevoEstado = 'pendiente';
                 $technicianId = null;
             } elseif (in_array('Solicitar Cierre', $solucion)) {
-                $nuevoEstado = 'ejecutada';
-                // Technician remains assigned for historical record in 'ejecutada'
+                $nuevoEstado = 'pendiente';
+                $technicianId = null;
             }
         }
 
