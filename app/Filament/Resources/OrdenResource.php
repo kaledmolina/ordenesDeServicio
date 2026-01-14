@@ -73,12 +73,17 @@ class OrdenResource extends Resource
                             ->getSearchResultsUsing(fn(string $search): array => User::role('cliente')
                                 ->where(function ($q) use ($search) {
                                     $q->where('name', 'like', "%{$search}%")
-                                        ->orWhere('cedula', 'like', "%{$search}%");
+                                        ->orWhere('cedula', 'like', "%{$search}%")
+                                        ->orWhere('codigo_contrato', 'like', "%{$search}%");
                                 })
                                 ->limit(50)
-                                ->pluck('name', 'id')
+                                ->get()
+                                ->mapWithKeys(fn($user) => [$user->id => "{$user->codigo_contrato} - {$user->name} - {$user->cedula}"])
                                 ->toArray())
-                            ->getOptionLabelUsing(fn($value): ?string => User::find($value)?->name)
+                            ->getOptionLabelUsing(function ($value): ?string {
+                                $user = User::find($value);
+                                return $user ? "{$user->codigo_contrato} - {$user->name} - {$user->cedula}" : null;
+                            })
                             ->searchable()
                             ->preload()
                             ->live()
