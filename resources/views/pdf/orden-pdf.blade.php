@@ -212,7 +212,14 @@
               <tr>
                   <td width="30%" rowspan="4" style="vertical-align: top; border-right: 1px solid #000;">
                       <div>
-                          {{ $orden->solucion_tecnico ?? '' }} - {{ $orden->observaciones ?? '' }}
+                          @php
+                              $sol = $orden->solucion_tecnico;
+                              if (is_array($sol)) {
+                                  echo implode(', ', $sol);
+                              } else {
+                                  echo $sol ?? '';
+                              }
+                          @endphp - {{ $orden->observaciones ?? '' }}
                       </div>
                   </td>
                   <td width="20%">Mac Router</td>
