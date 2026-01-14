@@ -778,7 +778,9 @@ class OrdenResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            OrdenResource\RelationManagers\AuditsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
