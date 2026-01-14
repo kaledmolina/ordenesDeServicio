@@ -66,8 +66,23 @@ class Orden extends Model
         'fecha_fin_atencion' => 'datetime',
         'fecha_cierre' => 'datetime',
         'fecha_llegada' => 'datetime',
-        'solucion_tecnico' => 'array',
+        'fecha_llegada' => 'datetime',
+        // 'solucion_tecnico' => 'array', // Removed strict cast to handle legacy data
     ];
+
+    // Accessor to safely decode JSON or return legacy string as single-item array
+    public function getSolucionTecnicoAttribute($value)
+    {
+        if (is_null($value)) return [];
+        $decoded = json_decode($value, true);
+        return is_array($decoded) ? $decoded : [$value];
+    }
+
+    // Mutator to always save as JSON
+    public function setSolucionTecnicoAttribute($value)
+    {
+        $this->attributes['solucion_tecnico'] = is_array($value) ? json_encode($value) : $value;
+    }
 
     const TIPO_ORDEN_OPTIONS = [
         '025' => '025 REVISION TECNICA',
