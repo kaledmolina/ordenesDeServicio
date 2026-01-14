@@ -188,8 +188,19 @@ class OrderController extends Controller
             ]);
         }
 
-        $solucion = $request->input('solucion_tecnico'); // Retrieve solution early
-        $isSpecialCase = in_array($solucion, ['Solicitar Cierre', 'Reprogramar']);
+        $solucion = $request->input('solucion_tecnico'); 
+        // If array, take the first one or logic is different?
+        // Actually, $isSpecialCase checking needs to handle array now.
+        // Assuming special cases (Reprogramar, Solicitar Cierre) act as single selections or flags
+        
+        $isSpecialCase = false;
+        if (is_array($solucion)) {
+            // Check if any of the special values are in the array
+            $isSpecialCase = in_array('Solicitar Cierre', $solucion) || in_array('Reprogramar', $solucion);
+            // If strictly one or the other is required logic, we might need to adjust, but broadly checking if present is safer.
+        } else {
+             $isSpecialCase = in_array($solucion, ['Solicitar Cierre', 'Reprogramar']);
+        }
 
         if (!$isSpecialCase && $estado !== 'en_sitio') {
             return response()->json([
@@ -203,7 +214,8 @@ class OrderController extends Controller
         $validated = $request->validate([
             'celular' => 'nullable|string|max:20',
             'observaciones' => $isSpecialCase ? 'required|string' : 'nullable|string',
-            'solucion_tecnico' => 'nullable|string',
+            'solucion_tecnico' => 'nullable|array', // CHANGED TO ARRAY
+            'solucion_tecnico.*' => 'string', // Validate contents
             'firma_tecnico' => $isSpecialCase ? 'nullable' : 'required',
             'firma_suscriptor' => $isSpecialCase ? 'nullable' : 'required',
             'articulos' => 'nullable|array',
@@ -216,12 +228,14 @@ class OrderController extends Controller
         $nuevoEstado = 'ejecutada'; // Default
         $technicianId = $orden->technician_id;
 
-        if ($solucion === 'Reprogramar') {
-            $nuevoEstado = 'pendiente';
-            $technicianId = null;
-        } elseif ($solucion === 'Solicitar Cierre') {
-            $nuevoEstado = 'ejecutada';
-            // Technician remains assigned for historical record in 'ejecutada'
+        if ($isSpecialCase) {
+            if (in_array('Reprogramar', $solucion)) {
+                $nuevoEstado = 'pendiente';
+                $technicianId = null;
+            } elseif (in_array('Solicitar Cierre', $solucion)) {
+                $nuevoEstado = 'ejecutada';
+                // Technician remains assigned for historical record in 'ejecutada'
+            }
         }
 
         \Illuminate\Support\Facades\DB::table('ordens')
@@ -233,7 +247,7 @@ class OrderController extends Controller
                 // Keep other fields
                 'telefono' => $validated['celular'] ?? $orden->telefono,
                 'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
-                'solucion_tecnico' => $validated['solucion_tecnico'] ?? $orden->solucion_tecnico,
+                'solucion_tecnico' => isset($validated['solucion_tecnico']) ? json_encode($validated['solucion_tecnico']) : (is_array($orden->solucion_tecnico) ? json_encode($orden->solucion_tecnico) : $orden->solucion_tecnico),
                 'firma_tecnico' => $validated['firma_tecnico'],
                 'firma_suscriptor' => $validated['firma_suscriptor'],
                 'articulos' => isset($validated['articulos']) ? json_encode($validated['articulos']) : $orden->articulos,
@@ -245,18 +259,19 @@ class OrderController extends Controller
             ]);
 
         // Logic for Notification if Reprogrammed or Closure Requested
-        if ($solucion === 'Reprogramar' || $solucion === 'Solicitar Cierre') {
-            $recipients = User::role(['administrador', 'operador'])->get();
-            $motivo = $validated['observaciones'] ?? 'Sin motivo especificado';
-
-            $title = $solucion === 'Reprogramar' ? 'Orden Reprogramada' : 'Solicitud de Cierre';
-            $icon = $solucion === 'Reprogramar' ? 'heroicon-o-arrow-path-rounded-square' : 'heroicon-o-check-circle';
-            $actionText = $solucion === 'Reprogramar' ? 'reprogramó' : 'solicitó cierre para';
-
-            $notification = FilamentNotification::make()
+        if ($isSpecialCase) {
+             // Determine which one for notification details
+             $solucionType = in_array('Reprogramar', $solucion) ? 'Reprogramar' : 'Solicitar Cierre';
+             
+             // We need to re-set these variables inside the block because they were based on string comparison before
+             $title = $solucionType === 'Reprogramar' ? 'Orden Reprogramada' : 'Solicitud de Cierre';
+             $icon = $solucionType === 'Reprogramar' ? 'heroicon-o-arrow-path-rounded-square' : 'heroicon-o-check-circle';
+             $actionText = $solucionType === 'Reprogramar' ? 'reprogramó' : 'solicitó cierre para';
+             
+             $notification = FilamentNotification::make()
                 ->title($title)
                 ->icon($icon)
-                ->body("El técnico {$user->name} {$actionText} la orden #{$orden->numero_orden}. Motivo: \"{$motivo}\".")
+                ->body("El técnico {$user->name} {$actionText} la orden #{$orden->numero_orden}. Motivo: \"{$validated['observaciones']}\".") 
                 ->actions([
                     Action::make('view')
                         ->label('Ver Orden')
