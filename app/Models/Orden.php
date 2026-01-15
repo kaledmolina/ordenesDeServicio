@@ -18,6 +18,49 @@ class Orden extends Model
             ->dontSubmitEmptyLogs();
     }
 
+    protected $appends = ['deadline_at'];
+
+    // Colombian Holidays (Hardcoded for 2025-2026 - Update annually or move to DB)
+    const HOLIDAYS = [
+        '2025-01-01', '2025-01-06', '2025-03-24', '2025-04-17', '2025-04-18', '2025-05-01', 
+        '2025-06-02', '2025-06-23', '2025-06-30', '2025-07-20', '2025-08-07', '2025-08-18', 
+        '2025-10-13', '2025-11-03', '2025-11-17', '2025-12-08', '2025-12-25',
+        '2026-01-01', '2026-01-12', '2026-03-23', '2026-04-02', '2026-04-03', '2026-05-01',
+        // Add more as needed
+    ];
+
+    public function getDeadlineAtAttribute()
+    {
+        if (!$this->created_at) return null;
+
+        $date = $this->created_at->copy();
+        $hoursToAdd = 48;
+        
+        // Loop hour by hour to skip non-business hours? 
+        // User asked for "48 hours" but usually implies "2 Business Days".
+        // Simpler approach: Add 2 days, but if lands on weekend/holiday, push forward.
+        // OR: Count 48 'business hours'? Usually strictly 2 days excluding weekends.
+        
+        // Let's implement: Add 2 days worth of business time.
+        // If created Friday 4PM, +48h -> Sunday 4PM.
+        // Excluding weekends: Friday 4PM -> Monday 4PM (24h) -> Tuesday 4PM (48h).
+        
+        $addedDays = 0;
+        while ($addedDays < 2) {
+            $date->addDay();
+            // Check if $date is weekend or holiday
+            $ymd = $date->format('Y-m-d');
+            $isWeekend = $date->isWeekend(); // Saturday or Sunday
+            $isHoliday = in_array($ymd, self::HOLIDAYS);
+            
+            if (!$isWeekend && !$isHoliday) {
+                $addedDays++;
+            }
+        }
+        
+        return $date;
+    }
+
     /**
      * Prepare a date for array / JSON serialization.
      */

@@ -412,6 +412,32 @@ class OrdenResource extends Resource
                         'danger' => Orden::ESTADO_CERRADA,
                     ])
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('deadline_countdown')
+                    ->label('Tiempo Límite (48h)')
+                    ->getStateUsing(function (Orden $record) {
+                        $deadline = $record->deadline_at;
+                        if (!$deadline) return 'N/A';
+        
+                        // If closed or annulled, show nothing or "Finalizado"
+                        if (in_array($record->estado_orden, [Orden::ESTADO_CERRADA, Orden::ESTADO_ANULADA])) {
+                            return 'Cerrada';
+                        }
+        
+                        $now = now();
+                        if ($now->greaterThan($deadline)) {
+                            return 'Vencida hace ' . $deadline->diffForHumans($now, true);
+                        }
+        
+                        return 'Vence en ' . $now->diffForHumans($deadline, true);
+                    })
+                    ->badge()
+                    ->colors([
+                        'danger' => fn ($state) => \Illuminate\Support\Str::contains($state, 'Vencida'),
+                        'warning' => fn ($state) => \Illuminate\Support\Str::contains($state, 'Vence en') && \Illuminate\Support\Str::contains($state, ['hora', 'minuto']), // Close to deadline
+                        'success' => fn ($state) => \Illuminate\Support\Str::contains($state, 'Vence en') && !\Illuminate\Support\Str::contains($state, ['hora', 'minuto']), // Lots of time
+                        'gray' => 'Cerrada',
+                    ])
+                    ->icon(fn ($state) => \Illuminate\Support\Str::contains($state, 'Vencida') ? 'heroicon-o-exclamation-circle' : 'heroicon-o-clock'),
             ])
             ->filters([
                 SelectFilter::make('estado_orden')
