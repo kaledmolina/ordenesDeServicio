@@ -252,25 +252,32 @@ class OrderController extends Controller
             }
         }
 
+        $updateData = [
+            'estado_orden' => $nuevoEstado,
+            'technician_id' => $technicianId,
+            'fecha_fin_atencion' => now(),
+            // Keep other fields
+            'telefono' => $validated['celular'] ?? $orden->telefono,
+            'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
+            'solucion_tecnico' => isset($validated['solucion_tecnico']) ? json_encode($validated['solucion_tecnico']) : (is_array($orden->solucion_tecnico) ? json_encode($orden->solucion_tecnico) : $orden->solucion_tecnico),
+            'firma_tecnico' => $validated['firma_tecnico'],
+            'firma_suscriptor' => $validated['firma_suscriptor'],
+            'articulos' => isset($validated['articulos']) ? json_encode($validated['articulos']) : $orden->articulos,
+            'mac_router' => $validated['mac_router'] ?? $orden->mac_router,
+            'mac_bridge' => $validated['mac_bridge'] ?? $orden->mac_bridge,
+            'mac_ont' => $validated['mac_ont'] ?? $orden->mac_ont,
+            'otros_equipos' => $validated['otros_equipos'] ?? $orden->otros_equipos,
+            'updated_at' => now(),
+        ];
+
+        // Reset timer if Reprogrammed
+        if ($isSpecialCase && in_array('Reprogramar', $solucion)) {
+            $updateData['created_at'] = now();
+        }
+
         \Illuminate\Support\Facades\DB::table('ordens')
             ->where('id', $orden->id)
-            ->update([
-                'estado_orden' => $nuevoEstado,
-                'technician_id' => $technicianId,
-                'fecha_fin_atencion' => now(),
-                // Keep other fields
-                'telefono' => $validated['celular'] ?? $orden->telefono,
-                'observaciones' => $validated['observaciones'] ?? $orden->observaciones,
-                'solucion_tecnico' => isset($validated['solucion_tecnico']) ? json_encode($validated['solucion_tecnico']) : (is_array($orden->solucion_tecnico) ? json_encode($orden->solucion_tecnico) : $orden->solucion_tecnico),
-                'firma_tecnico' => $validated['firma_tecnico'],
-                'firma_suscriptor' => $validated['firma_suscriptor'],
-                'articulos' => isset($validated['articulos']) ? json_encode($validated['articulos']) : $orden->articulos,
-                'mac_router' => $validated['mac_router'] ?? $orden->mac_router,
-                'mac_bridge' => $validated['mac_bridge'] ?? $orden->mac_bridge,
-                'mac_ont' => $validated['mac_ont'] ?? $orden->mac_ont,
-                'otros_equipos' => $validated['otros_equipos'] ?? $orden->otros_equipos,
-                'updated_at' => now(),
-            ]);
+            ->update($updateData);
 
         // Logic for Notification if Reprogrammed or Closure Requested
         if ($isSpecialCase) {

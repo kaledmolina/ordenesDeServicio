@@ -745,7 +745,7 @@ class OrdenResource extends Resource
                         ->label('Cerrar Orden')
                         ->icon('heroicon-o-lock-closed')
                         ->color('danger')
-                        ->visible(fn(Orden $record) => $record->estado_orden === Orden::ESTADO_EJECUTADA && Auth::user()->hasAnyRole(['administrador', 'operador']))
+                        ->visible(fn(Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_CERRADA, Orden::ESTADO_ANULADA]) && Auth::user()->hasAnyRole(['administrador', 'operador']))
                         ->action(function (Orden $record) {
                             $record->update([
                                 'estado_orden' => Orden::ESTADO_CERRADA,
