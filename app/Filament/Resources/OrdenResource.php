@@ -154,7 +154,7 @@ class OrdenResource extends Resource
                         TextInput::make('numero_orden')
                             ->label('NUMERO')
                             ->readOnly()
-                            ->hiddenOn('create'),
+                            ->placeholder('Autogenerado al guardar'),
                         Select::make('estado_orden')
                             ->label('ESTADO ORDEN')
                             ->options([
