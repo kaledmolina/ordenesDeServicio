@@ -107,7 +107,7 @@
                 </td>
                 <td class="meta-cell">
                     <div>Fecha y hora impresión:</div>
-                    <div>{{ date('d/12/2025 H:i:s') }}</div>
+                    <div>{{ $orden->created_at->format('d/m/Y H:i:s') }}</div>
                 </td>
             </tr>
         </table>
