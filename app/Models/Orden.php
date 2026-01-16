@@ -22,7 +22,13 @@ class Orden extends Model
     {
         static::creating(function ($orden) {
             if (empty($orden->numero_orden)) {
-                $orden->numero_orden = (static::max('numero_orden') ?? 0) + 1;
+                // Keep trying until we find a unique number
+                $attempts = 0;
+                do {
+                    $max = static::max('numero_orden') ?? 0;
+                    $orden->numero_orden = $max + 1;
+                    $attempts++;
+                } while (static::where('numero_orden', $orden->numero_orden)->exists() && $attempts < 5);
             }
         });
     }

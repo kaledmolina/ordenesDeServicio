@@ -153,7 +153,6 @@ class OrdenResource extends Resource
                         Forms\Components\DatePicker::make('fecha_vencimiento')->label('F. VENC')->hiddenOn('create'),
                         TextInput::make('numero_orden')
                             ->label('NUMERO')
-                            ->default(fn() => (\App\Models\Orden::selectRaw('MAX(CAST(numero_orden AS UNSIGNED)) as max_num')->value('max_num') ?? 0) + 1)
                             ->readOnly()
                             ->hiddenOn('create'),
                         Select::make('estado_orden')
