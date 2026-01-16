@@ -12,6 +12,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Actions\Action;
@@ -138,6 +139,16 @@ class OrdenEspecialResource extends Resource
                     ->label('Tipo de Orden')
                     ->options(Orden::TIPO_ORDEN_OPTIONS)
                     ->searchable(),
+                SelectFilter::make('clasificacion')
+                    ->label('Clasificación')
+                    ->options([
+                        'rapidas' => 'Rápidas',
+                        'cuadrilla' => 'Cuadrilla',
+                    ]),
+                SelectFilter::make('solicitud_suscriptor')
+                    ->label('Reporte')
+                    ->options(Orden::SOLICITUD_SUSCRIPTOR_OPTIONS)
+                    ->searchable(),
                 Filter::make('fecha_trn')
                     ->form([
                         DatePicker::make('fecha_desde')->label('Fecha Desde'),
@@ -156,55 +167,57 @@ class OrdenEspecialResource extends Resource
                     }),
             ])
             ->actions([
-                // Allow viewing the full order PDF if needed
-                Tables\Actions\Action::make('pdf')
-                    ->label('PDF')
-                    ->icon('heroicon-o-document')
-                    ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
-                    ->openUrlInNewTab(),
+                ActionGroup::make([
+                    // Allow viewing the full order PDF if needed
+                    Tables\Actions\Action::make('pdf')
+                        ->label('PDF')
+                        ->icon('heroicon-o-document')
+                        ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
+                        ->openUrlInNewTab(),
 
-                Action::make('reasignarTecnico')
-                    ->label('Reasignar Técnico')
-                    ->icon('heroicon-o-user-plus')
-                    ->color('warning')
-                    ->form([
-                        Select::make('technician_id')
-                            ->label('Nuevo Técnico')
-                            ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
-                            ->searchable()
-                            ->preload()
-                            ->required(),
-                    ])
-                    ->action(function (Orden $record, array $data) {
-                        $record->update([
-                            'technician_id' => $data['technician_id'],
-                            'fecha_asignacion' => now(),
-                        ]);
+                    Action::make('reasignarTecnico')
+                        ->label('Reasignar Técnico')
+                        ->icon('heroicon-o-user-plus')
+                        ->color('warning')
+                        ->form([
+                            Select::make('technician_id')
+                                ->label('Nuevo Técnico')
+                                ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                        ])
+                        ->action(function (Orden $record, array $data) {
+                            $record->update([
+                                'technician_id' => $data['technician_id'],
+                                'fecha_asignacion' => now(),
+                            ]);
 
-                        Notification::make()
-                            ->title('Técnico reasignado correctamente')
-                            ->success()
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title('Técnico reasignado correctamente')
+                                ->success()
+                                ->send();
+                        }),
 
-                Tables\Actions\Action::make('cerrarOrden')
-                    ->label('Cerrar Orden')
-                    ->icon('heroicon-o-lock-closed')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->modalHeading('Cerrar Orden Especial')
-                    ->modalSubheading('¿Está seguro que desea cerrar esta orden? Se marcará como cerrada y se registrará la fecha actual.')
-                    ->action(function (Orden $record) {
-                        $record->update([
-                            'estado_orden' => Orden::ESTADO_CERRADA,
-                            'fecha_cierre' => now(),
-                        ]);
+                    Tables\Actions\Action::make('cerrarOrden')
+                        ->label('Cerrar Orden')
+                        ->icon('heroicon-o-lock-closed')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Cerrar Orden Especial')
+                        ->modalSubheading('¿Está seguro que desea cerrar esta orden? Se marcará como cerrada y se registrará la fecha actual.')
+                        ->action(function (Orden $record) {
+                            $record->update([
+                                'estado_orden' => Orden::ESTADO_CERRADA,
+                                'fecha_cierre' => now(),
+                            ]);
 
-                        \Filament\Notifications\Notification::make()
-                            ->title('Orden cerrada correctamente')
-                            ->success()
-                            ->send();
-                    }),
+                            \Filament\Notifications\Notification::make()
+                                ->title('Orden cerrada correctamente')
+                                ->success()
+                                ->send();
+                        }),
+                ])
             ])
             ->bulkActions([
 
