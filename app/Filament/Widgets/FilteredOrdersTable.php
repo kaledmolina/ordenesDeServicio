@@ -19,6 +19,12 @@ class FilteredOrdersTable extends BaseWidget
     // Esta propiedad recibirá el estado desde la URL
     public ?string $status = '';
 
+    public static function canView(): bool
+    {
+        // Solo mostrar si hay un filtro 'status' en la URL
+        return request()->has('status') && !empty(request()->query('status'));
+    }
+
     protected function getTableQuery(): Builder
     {
         $query = Orden::query();
@@ -51,7 +57,7 @@ class FilteredOrdersTable extends BaseWidget
             ->query($this->getTableQuery())
             ->columns([
                 TextColumn::make('numero_orden')->label('N° Orden')->searchable(),
-                
+
                 TextColumn::make('nombre_cliente')
                     ->label('Cliente')
                     ->searchable()
@@ -73,7 +79,7 @@ class FilteredOrdersTable extends BaseWidget
                     ->label('Técnico')
                     ->searchable()
                     ->placeholder('Sin asignar')
-                    ->visible(fn () => auth()->user()->hasAnyRole(['administrador', 'operador'])),
+                    ->visible(fn() => auth()->user()->hasAnyRole(['administrador', 'operador'])),
 
                 TextColumn::make('fecha_trn')
                     ->label('Fecha')
@@ -97,8 +103,8 @@ class FilteredOrdersTable extends BaseWidget
             ->filters([
                 SelectFilter::make('technician')
                     ->label('Técnico')
-                    ->relationship('technician', 'name', modifyQueryUsing: fn ($query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico'))),
-                
+                    ->relationship('technician', 'name', modifyQueryUsing: fn($query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico'))),
+
                 TernaryFilter::make('sin_tecnico')
                     ->label('Sin Técnico Asignado')
                     ->nullable()
