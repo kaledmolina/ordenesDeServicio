@@ -40,7 +40,8 @@ class OrdenEspecialResource extends Resource
             ->where(function ($query) {
                 $query->where('solucion_tecnico', 'like', '%Reprogramar%')
                     ->orWhere('solucion_tecnico', 'like', '%Solicitar Cierre%');
-            });
+            })
+            ->where('estado_orden', '!=', Orden::ESTADO_CERRADA);
     }
 
     public static function form(Form $form): Form
