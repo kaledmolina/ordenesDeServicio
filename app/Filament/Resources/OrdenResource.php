@@ -122,7 +122,7 @@ class OrdenResource extends Resource
                             ->columnSpan(2),
                         Hidden::make('nombre_cliente'),
                         TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
-                        TextInput::make('cedula')->label('CEDULA')->columnSpan(1),
+                        TextInput::make('cedula')->label('CEDULA')->columnSpan(1)->hiddenOn('create'),
                         TextInput::make('precinto')->label('PRECINTO')->columnSpan(1)->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))->hiddenOn('create'),
                     ])->columns(5),
 
@@ -143,16 +143,19 @@ class OrdenResource extends Resource
                                 '2 Red' => '2 Red',
                             ])
                             ->default('1 Suscriptor')
-                            ->required(),
+                            ->required()
+                            ->hiddenOn('create'),
                         Forms\Components\DatePicker::make('fecha_trn')
                             ->label('FECHA TRN')
                             ->default(now())
-                            ->required(),
+                            ->required()
+                            ->hiddenOn('create'),
                         Forms\Components\DatePicker::make('fecha_vencimiento')->label('F. VENC')->hiddenOn('create'),
                         TextInput::make('numero_orden')
                             ->label('NUMERO')
                             ->default(fn() => (\App\Models\Orden::selectRaw('MAX(CAST(numero_orden AS UNSIGNED)) as max_num')->value('max_num') ?? 0) + 1)
-                            ->readOnly(),
+                            ->readOnly()
+                            ->hiddenOn('create'),
                         Select::make('estado_orden')
                             ->label('ESTADO ORDEN')
                             ->options([
@@ -166,7 +169,8 @@ class OrdenResource extends Resource
                             ])
                             ->default(Orden::ESTADO_PENDIENTE)
                             ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
-                            ->dehydrated(),
+                            ->dehydrated()
+                            ->hiddenOn('create'),
                         Select::make('clasificacion')
                             ->label('CLASIFICACION')
                             ->required()
@@ -211,7 +215,8 @@ class OrdenResource extends Resource
                             ->relationship('tecnicoAuxiliar', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
                             ->searchable()
                             ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
-                            ->preload(),
+                            ->preload()
+                            ->hiddenOn('create'),
                         Select::make('solicitud_suscriptor')
                             ->label('SOLICITUD SUSCRIPTOR (Reporte)')
                             ->visible(fn(\Filament\Forms\Get $get) => $get('tipo_orden') === '025')
@@ -236,7 +241,7 @@ class OrdenResource extends Resource
                             ->label('NOVEDADES NOC')
                             ->rows(3)
                             ->columnSpanFull(),
-                        Textarea::make('observaciones')->label('OBSERVACIONES')->columnSpanFull(),
+                        Textarea::make('observaciones')->label('OBSERVACIONES')->columnSpanFull()->hiddenOn('create'),
                     ])->columns(2),
 
                 // SECCIÓN 6: DETALLE DE ARTÍCULOS (REPEATER)
