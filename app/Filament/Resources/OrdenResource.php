@@ -222,6 +222,7 @@ class OrdenResource extends Resource
                             ->label('SOLUCIÓN TÉCNICO')
                             ->options(Orden::SOLUCION_TECNICO_OPTIONS)
                             ->multiple()
+                            ->hiddenOn('create')
                             ->searchable(),
                     ])->columns(2),
 
@@ -229,7 +230,7 @@ class OrdenResource extends Resource
                 Section::make('Totales y Observaciones')
                     ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
                     ->schema([
-                        TextInput::make('valor_total')->label('VALOR TOTAL')->numeric()->prefix('$'),
+                        TextInput::make('valor_total')->label('VALOR TOTAL')->numeric()->prefix('$')->hiddenOn('create'),
                         Textarea::make('novedades_noc')
                             ->label('NOVEDADES NOC')
                             ->rows(3)
@@ -239,6 +240,7 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 6: DETALLE DE ARTÍCULOS (REPEATER)
                 Section::make('Detalle de Artículos')
+                    ->hiddenOn('create')
                     ->schema([
                         Repeater::make('articulos')
                             ->schema([
@@ -297,6 +299,7 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 7: EQUIPOS INSTALADOS/RETIRADOS
                 Section::make('Equipos Instalados/Retirados')
+                    ->hiddenOn('create')
                     ->schema([
                         TextInput::make('mac_router')->label('Mac Router'),
                         TextInput::make('mac_bridge')->label('Mac Bridge'),
@@ -306,6 +309,7 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 8: FIRMAS
                 Section::make('Firmas')
+                    ->hiddenOn('create')
                     ->schema([
                         SignaturePad::make('firma_tecnico')
                             ->label('Firma Técnico')
@@ -321,6 +325,7 @@ class OrdenResource extends Resource
 
                 // SECCIÓN 9: EVIDENCIA FOTOGRÁFICA
                 Section::make('Evidencia Fotográfica')
+                    ->hiddenOn('create')
                     ->schema([
                         Repeater::make('fotos')
                             ->relationship()
@@ -416,28 +421,29 @@ class OrdenResource extends Resource
                     ->label('Tiempo Límite (48h)')
                     ->getStateUsing(function (Orden $record) {
                         $deadline = $record->deadline_at;
-                        if (!$deadline) return 'N/A';
-        
+                        if (!$deadline)
+                            return 'N/A';
+
                         // If closed or annulled, show nothing or "Finalizado"
                         if (in_array($record->estado_orden, [Orden::ESTADO_CERRADA, Orden::ESTADO_ANULADA])) {
                             return 'Cerrada';
                         }
-        
+
                         $now = now();
                         if ($now->greaterThan($deadline)) {
                             return 'Vencida hace ' . $deadline->diffForHumans($now, true);
                         }
-        
+
                         return 'Vence en ' . $now->diffForHumans($deadline, true);
                     })
                     ->badge()
                     ->colors([
-                        'danger' => fn ($state) => \Illuminate\Support\Str::contains($state, 'Vencida'),
-                        'warning' => fn ($state) => \Illuminate\Support\Str::contains($state, 'Vence en') && \Illuminate\Support\Str::contains($state, ['hora', 'minuto']), // Close to deadline
-                        'success' => fn ($state) => \Illuminate\Support\Str::contains($state, 'Vence en') && !\Illuminate\Support\Str::contains($state, ['hora', 'minuto']), // Lots of time
+                        'danger' => fn($state) => \Illuminate\Support\Str::contains($state, 'Vencida'),
+                        'warning' => fn($state) => \Illuminate\Support\Str::contains($state, 'Vence en') && \Illuminate\Support\Str::contains($state, ['hora', 'minuto']), // Close to deadline
+                        'success' => fn($state) => \Illuminate\Support\Str::contains($state, 'Vence en') && !\Illuminate\Support\Str::contains($state, ['hora', 'minuto']), // Lots of time
                         'gray' => 'Cerrada',
                     ])
-                    ->icon(fn ($state) => \Illuminate\Support\Str::contains($state, 'Vencida') ? 'heroicon-o-exclamation-circle' : 'heroicon-o-clock'),
+                    ->icon(fn($state) => \Illuminate\Support\Str::contains($state, 'Vencida') ? 'heroicon-o-exclamation-circle' : 'heroicon-o-clock'),
             ])
             ->filters([
                 SelectFilter::make('estado_orden')
@@ -508,7 +514,7 @@ class OrdenResource extends Resource
                                 ->success()
                                 ->send();
                         })
-                        ->mountUsing(fn (Forms\ComponentContainer $form, Orden $record) => $form->fill([
+                        ->mountUsing(fn(Forms\ComponentContainer $form, Orden $record) => $form->fill([
                             'novedades_noc' => $record->novedades_noc,
                         ])),
                     Action::make('asignarTecnico')
