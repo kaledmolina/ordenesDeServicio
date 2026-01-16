@@ -12,6 +12,13 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
 
 class OrdenEspecialResource extends Resource
 {
@@ -31,7 +38,7 @@ class OrdenEspecialResource extends Resource
         return parent::getEloquentQuery()
             ->where(function ($query) {
                 $query->where('solucion_tecnico', 'like', '%Reprogramar%')
-                      ->orWhere('solucion_tecnico', 'like', '%Solicitar Cierre%');
+                    ->orWhere('solucion_tecnico', 'like', '%Solicitar Cierre%');
             });
     }
 
@@ -50,7 +57,7 @@ class OrdenEspecialResource extends Resource
                             ->readOnly(),
                         Forms\Components\TextInput::make('solucion_tecnico')
                             ->label('Tipo de Solicitud')
-                            ->formatStateUsing(fn ($state) => is_array($state) ? implode(', ', $state) : $state)
+                            ->formatStateUsing(fn($state) => is_array($state) ? implode(', ', $state) : $state)
                             ->readOnly(),
                         Forms\Components\Textarea::make('observaciones')
                             ->label('Motivo / Observaciones')
@@ -58,7 +65,7 @@ class OrdenEspecialResource extends Resource
                             ->readOnly()
                             ->columnSpanFull(),
                     ])->columns(3),
-                
+
                 Forms\Components\Section::make('Detalles del Técnico')
                     ->schema([
                         Forms\Components\TextInput::make('technician.name')
@@ -87,18 +94,20 @@ class OrdenEspecialResource extends Resource
                     ->label('Tipo Solicitud')
                     ->formatStateUsing(function ($state) {
                         $str = is_array($state) ? implode(' ', $state) : $state;
-                        if (str_contains($str, 'Reprogramar')) return 'Reprogramación';
-                        if (str_contains($str, 'Solicitar Cierre')) return 'Solicitud Cierre';
+                        if (str_contains($str, 'Reprogramar'))
+                            return 'Reprogramación';
+                        if (str_contains($str, 'Solicitar Cierre'))
+                            return 'Solicitud Cierre';
                         return 'Otro';
                     })
                     ->colors([
-                        'warning' => fn ($state) => str_contains(is_array($state)?implode($state):$state, 'Reprogramar'),
-                        'danger' => fn ($state) => str_contains(is_array($state)?implode($state):$state, 'Solicitar Cierre'),
+                        'warning' => fn($state) => str_contains(is_array($state) ? implode($state) : $state, 'Reprogramar'),
+                        'danger' => fn($state) => str_contains(is_array($state) ? implode($state) : $state, 'Solicitar Cierre'),
                     ]),
                 TextColumn::make('observaciones')
                     ->label('Motivo')
                     ->limit(50)
-                    ->tooltip(fn (Orden $record): string => $record->observaciones ?? '')
+                    ->tooltip(fn(Orden $record): string => $record->observaciones ?? '')
                     ->searchable(),
                 TextColumn::make('technician.name')
                     ->label('Técnico')
@@ -109,7 +118,42 @@ class OrdenEspecialResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                //
+                SelectFilter::make('estado_orden')
+                    ->label('Estado')
+                    ->options([
+                        Orden::ESTADO_PENDIENTE => 'Pendiente',
+                        Orden::ESTADO_ASIGNADA => 'Asignada',
+                        Orden::ESTADO_EN_SITIO => 'En Sitio',
+                        Orden::ESTADO_EN_PROCESO => 'En Proceso',
+                        Orden::ESTADO_EJECUTADA => 'Ejecutada',
+                        Orden::ESTADO_CERRADA => 'Cerrada',
+                        Orden::ESTADO_ANULADA => 'Anulada',
+                    ]),
+                SelectFilter::make('technician_id')
+                    ->label('Técnico')
+                    ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('tipo_orden')
+                    ->label('Tipo de Orden')
+                    ->options(Orden::TIPO_ORDEN_OPTIONS)
+                    ->searchable(),
+                Filter::make('fecha_trn')
+                    ->form([
+                        DatePicker::make('fecha_desde')->label('Fecha Desde'),
+                        DatePicker::make('fecha_hasta')->label('Fecha Hasta'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['fecha_desde'],
+                                fn(Builder $query, $date) => $query->whereDate('fecha_trn', '>=', $date),
+                            )
+                            ->when(
+                                $data['fecha_hasta'],
+                                fn(Builder $query, $date) => $query->whereDate('fecha_trn', '<=', $date),
+                            );
+                    }),
             ])
             ->actions([
                 // Allow viewing the full order PDF if needed
@@ -118,9 +162,52 @@ class OrdenEspecialResource extends Resource
                     ->icon('heroicon-o-document')
                     ->url(fn(Orden $record) => route('orden.pdf.stream', $record))
                     ->openUrlInNewTab(),
+
+                Action::make('reasignarTecnico')
+                    ->label('Reasignar Técnico')
+                    ->icon('heroicon-o-user-plus')
+                    ->color('warning')
+                    ->form([
+                        Select::make('technician_id')
+                            ->label('Nuevo Técnico')
+                            ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                    ])
+                    ->action(function (Orden $record, array $data) {
+                        $record->update([
+                            'technician_id' => $data['technician_id'],
+                            'fecha_asignacion' => now(),
+                        ]);
+
+                        Notification::make()
+                            ->title('Técnico reasignado correctamente')
+                            ->success()
+                            ->send();
+                    }),
+
+                Tables\Actions\Action::make('cerrarOrden')
+                    ->label('Cerrar Orden')
+                    ->icon('heroicon-o-lock-closed')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Cerrar Orden Especial')
+                    ->modalSubheading('¿Está seguro que desea cerrar esta orden? Se marcará como cerrada y se registrará la fecha actual.')
+                    ->action(function (Orden $record) {
+                        $record->update([
+                            'estado_orden' => Orden::ESTADO_CERRADA,
+                            'fecha_cierre' => now(),
+                        ]);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Orden cerrada correctamente')
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
-                
+
             ]);
     }
 
