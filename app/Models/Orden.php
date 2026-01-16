@@ -36,9 +36,14 @@ class Orden extends Model
         });
 
         static::creating(function ($orden) {
-            // Si no hay técnico asignado, el estado debe ser PENDIENTE
+            // Si no hay técnico asignado, estado PENDIENTE. Si hay técnico, estado ASIGNADA y fecha asignación.
             if (empty($orden->technician_id)) {
                 $orden->estado_orden = self::ESTADO_PENDIENTE;
+            } else {
+                $orden->estado_orden = self::ESTADO_ASIGNADA;
+                if (empty($orden->fecha_asignacion)) {
+                    $orden->fecha_asignacion = now();
+                }
             }
 
             // Defaults para campos ocultos
