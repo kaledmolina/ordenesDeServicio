@@ -181,6 +181,7 @@ class OrdenResource extends Resource
                 // SECCIÓN 3: DATOS DE CONTACTO Y ESTADO
                 Section::make('Datos de Contacto y Estado')
                     ->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))
+                    ->hiddenOn('create')
                     ->schema([
                         TextInput::make('direccion_asociado')->label('DIRECCION ASOCIADO'),
                         TextInput::make('telefono')->label('TELEFONO'),
