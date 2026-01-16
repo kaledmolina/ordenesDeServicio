@@ -22,13 +22,15 @@ class Orden extends Model
     {
         static::creating(function ($orden) {
             if (empty($orden->numero_orden)) {
-                // Keep trying until we find a unique number
-                $attempts = 0;
-                do {
+                // Use a transaction and lock the latest record to act as a mutex
+                // This serializes the number generation so concurrent requests wait for each other
+                \Illuminate\Support\Facades\DB::transaction(function () use ($orden) {
+                    // Lock the latest record (or any record) to block other processes here
+                    static::lockForUpdate()->latest('id')->first();
+
                     $max = static::max('numero_orden') ?? 0;
                     $orden->numero_orden = $max + 1;
-                    $attempts++;
-                } while (static::where('numero_orden', $orden->numero_orden)->exists() && $attempts < 5);
+                });
             }
         });
     }
