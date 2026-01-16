@@ -34,14 +34,21 @@ class OrdenEspecialResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-exclamation-triangle';
 
-    public static function getEloquentQuery(): Builder
+    protected function getTableQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        return Orden::query()
             ->where(function ($query) {
                 $query->where('solucion_tecnico', 'like', '%Reprogramar%')
                     ->orWhere('solucion_tecnico', 'like', '%Solicitar Cierre%');
             })
-            ->where('estado_orden', '!=', Orden::ESTADO_CERRADA);
+            ->where('estado_orden', '!=', Orden::ESTADO_CERRADA)
+            ->orderByRaw("
+                CASE 
+                    WHEN estado_orden IN ('pendiente', 'asignada', 'en_proceso', 'ejecutada') THEN 0 
+                    ELSE 1 
+                END ASC
+            ")
+            ->orderBy('created_at', 'asc');
     }
 
     public static function form(Form $form): Form

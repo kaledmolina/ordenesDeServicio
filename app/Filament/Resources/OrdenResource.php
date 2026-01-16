@@ -48,7 +48,14 @@ class OrdenResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()
+            ->orderByRaw("
+                CASE 
+                    WHEN estado_orden IN ('pendiente', 'asignada', 'en_proceso', 'ejecutada') THEN 0 
+                    ELSE 1 
+                END ASC
+            ")
+            ->orderBy('created_at', 'asc');
 
         // Si el usuario NO es administrador ni operador, solo ve sus propias órdenes
         if (!Auth::user()->hasAnyRole(['administrador', 'operador'])) {
