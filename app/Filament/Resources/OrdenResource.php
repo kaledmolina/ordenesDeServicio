@@ -123,7 +123,7 @@ class OrdenResource extends Resource
                         Hidden::make('nombre_cliente'),
                         TextInput::make('direccion')->label('DIRECCION')->columnSpan(1),
                         TextInput::make('cedula')->label('CEDULA')->columnSpan(1),
-                        TextInput::make('precinto')->label('PRECINTO')->columnSpan(1)->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador'])),
+                        TextInput::make('precinto')->label('PRECINTO')->columnSpan(1)->disabled(fn() => !Auth::user()->hasAnyRole(['administrador', 'operador']))->hiddenOn('create'),
                     ])->columns(5),
 
                 // SECCIÓN 2: DATOS DE LA ORDEN
@@ -148,7 +148,7 @@ class OrdenResource extends Resource
                             ->label('FECHA TRN')
                             ->default(now())
                             ->required(),
-                        Forms\Components\DatePicker::make('fecha_vencimiento')->label('F. VENC'),
+                        Forms\Components\DatePicker::make('fecha_vencimiento')->label('F. VENC')->hiddenOn('create'),
                         TextInput::make('numero_orden')
                             ->label('NUMERO')
                             ->default(fn() => (\App\Models\Orden::selectRaw('MAX(CAST(numero_orden AS UNSIGNED)) as max_num')->value('max_num') ?? 0) + 1)
