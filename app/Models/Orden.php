@@ -34,6 +34,21 @@ class Orden extends Model
                 });
             }
         });
+
+        static::creating(function ($orden) {
+            // Si no hay técnico asignado, el estado debe ser PENDIENTE
+            if (empty($orden->technician_id)) {
+                $orden->estado_orden = self::ESTADO_PENDIENTE;
+            }
+
+            // Defaults para campos ocultos
+            if (empty($orden->tipo_funcion)) {
+                $orden->tipo_funcion = '1 Suscriptor';
+            }
+            if (empty($orden->fecha_trn)) {
+                $orden->fecha_trn = now();
+            }
+        });
     }
 
     protected $appends = ['deadline_at'];
