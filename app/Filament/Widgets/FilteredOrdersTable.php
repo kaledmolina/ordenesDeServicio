@@ -21,8 +21,8 @@ class FilteredOrdersTable extends BaseWidget
 
     public static function canView(): bool
     {
-        // Solo mostrar si hay un filtro 'status' en la URL
-        return request()->has('status') && !empty(request()->query('status'));
+        // Only visible if a status filter IS present
+        return !empty(request()->query('status'));
     }
 
     protected function getTableQuery(): Builder
@@ -56,13 +56,6 @@ class FilteredOrdersTable extends BaseWidget
         return $table
             ->query($this->getTableQuery())
             ->columns([
-                TextColumn::make('numero_orden')->label('N° Orden')->searchable(),
-
-                TextColumn::make('nombre_cliente')
-                    ->label('Cliente')
-                    ->searchable()
-                    ->sortable(),
-
                 TextColumn::make('direccion')
                     ->label('Dirección')
                     ->searchable(),
