@@ -87,10 +87,12 @@ class OrdenEspecialResource extends Resource
                 TextColumn::make('numero_orden')
                     ->label('N° Orden')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('cliente.name')
                     ->label('Cliente')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 BadgeColumn::make('solucion_tecnico')
                     ->label('Tipo Solicitud')
                     ->formatStateUsing(function ($state) {
@@ -104,19 +106,23 @@ class OrdenEspecialResource extends Resource
                     ->colors([
                         'warning' => fn($state) => str_contains(is_array($state) ? implode($state) : $state, 'Reprogramar'),
                         'danger' => fn($state) => str_contains(is_array($state) ? implode($state) : $state, 'Solicitar Cierre'),
-                    ]),
+                    ])
+                    ->toggleable(),
                 TextColumn::make('observaciones')
                     ->label('Motivo')
                     ->limit(50)
                     ->tooltip(fn(Orden $record): string => $record->observaciones ?? '')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('technician.name')
                     ->label('Técnico')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('updated_at')
                     ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('estado_orden')
