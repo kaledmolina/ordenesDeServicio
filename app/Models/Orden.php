@@ -25,10 +25,11 @@ class Orden extends Model
                 // Use a transaction and lock the latest record to act as a mutex
                 // This serializes the number generation so concurrent requests wait for each other
                 \Illuminate\Support\Facades\DB::transaction(function () use ($orden) {
-                    // Lock the latest record (or any record) to block other processes here
+                    // Lock the latest record to serialize access
                     static::lockForUpdate()->latest('id')->first();
 
-                    $max = static::max('numero_orden') ?? 0;
+                    // Use CAST to ensure we get the numeric max, not string max ('9' > '10')
+                    $max = static::selectRaw('MAX(CAST(numero_orden AS UNSIGNED)) as max_num')->value('max_num') ?? 0;
                     $orden->numero_orden = $max + 1;
                 });
             }
