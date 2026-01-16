@@ -209,13 +209,7 @@ class OrdenResource extends Resource
                             ->relationship('technician', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
                             ->searchable()
                             ->preload()
-                            ->live()
-                            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                if ($state) {
-                                    $set('estado_orden', Orden::ESTADO_ASIGNADA);
-                                    $set('fecha_asignacion', now());
-                                }
-                            }),
+                            ->live(),
                         Select::make('tecnico_auxiliar_id')
                             ->label('Técnico Auxiliar')
                             ->relationship('tecnicoAuxiliar', 'name', fn(Builder $query) => $query->whereHas('roles', fn($q) => $q->where('name', 'tecnico')))
