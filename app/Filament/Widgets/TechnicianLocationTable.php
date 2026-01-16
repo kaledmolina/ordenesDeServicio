@@ -79,10 +79,6 @@ class TechnicianLocationTable extends BaseWidget
                     })
                     ->badge()
                     ->color(fn($state) => str_contains($state, 'Sin actividad') ? 'gray' : (str_contains($state, 'Ejecutada') ? 'success' : 'primary')),
-
-                Tables\Columns\TextColumn::make('phone') // If technician has phone
-                    ->label('Teléfono')
-                    ->getStateUsing(fn($record) => $record->telefono ?? '---'),
             ])
             ->paginated(false); // List all technicians usually small number
     }
