@@ -120,8 +120,8 @@ class OrdenResource extends Resource
                                 function () {
                                     return function (string $attribute, $value, \Closure $fail) {
                                         $user = User::find($value);
-                                        if ($user && $user->estado_internet === 'R') {
-                                            $fail('No se pueden crear órdenes para clientes con Estado Internet "R".');
+                                        if ($user && in_array($user->estado_internet, ['R', 'S'])) {
+                                            $fail('No se pueden crear órdenes para clientes con Estado Internet "R" (Retirado) o "S" (Suspendido).');
                                         }
                                     };
                                 },
@@ -757,7 +757,7 @@ class OrdenResource extends Resource
                         ->label('Cerrar Orden')
                         ->icon('heroicon-o-lock-closed')
                         ->color('danger')
-                        ->visible(fn(Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_CERRADA, Orden::ESTADO_ANULADA]) && Auth::user()->hasAnyRole(['administrador', 'operador']))
+                        ->visible(fn(Orden $record) => !in_array($record->estado_orden, [Orden::ESTADO_PENDIENTE, Orden::ESTADO_CERRADA, Orden::ESTADO_ANULADA]) && Auth::user()->hasAnyRole(['administrador', 'operador']))
                         ->action(function (Orden $record) {
                             $record->update([
                                 'estado_orden' => Orden::ESTADO_CERRADA,
